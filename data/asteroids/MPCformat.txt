@@ -1,0 +1,90 @@
+Columns   F77    Use
+
+    1 -   7  a7     Number or provisional designation
+                      (in packed form)
+    9 -  13  f5.2   Absolute magnitude, H
+   15 -  19  f5.2   Slope parameter, G
+
+   21 -  25  a5     Epoch (in packed form, .0 TT)
+   27 -  35  f9.5   Mean anomaly at the epoch, in degrees
+
+   38 -  46  f9.5   Argument of perihelion, J2000.0 (degrees)
+   49 -  57  f9.5   Longitude of the ascending node, J2000.0
+                      (degrees)
+   60 -  68  f9.5   Inclination to the ecliptic, J2000.0 (degrees)
+
+   71 -  79  f9.7   Orbital eccentricity
+   81 -  91  f11.8  Mean daily motion (degrees per day)
+   93 - 103  f11.7  Semimajor axis (AU)
+
+  106        i1     Uncertainty parameter, U
+                    If this column contains `E' it indicates
+                    that the orbital eccentricity was assumed.
+                    For one-opposition orbits this column can
+                    also contain `D' if a double (or multiple)
+                    designation is involved or `F' if an e-assumed
+                    double (or multiple) designation is involved.
+
+  108 - 116  a10    Reference
+  118 - 122  i5     Number of observations
+  124 - 126  i3     Number of oppositions
+
+     For multiple-opposition orbits:
+     128 - 131  i4     Year of first observation
+     132        a1     '-'
+     133 - 136  i4     Year of last observation
+
+     For single-opposition orbits:
+     128 - 131  i4     Arc length (days)
+     133 - 136  a4     'days'
+
+  138 - 141  f4.2   r.m.s residual (")
+  143 - 145  a3     Coarse indicator of perturbers
+                    (blank if unperturbed one-opposition object)
+  147 - 149  a3     Precise indicator of perturbers
+                    (blank if unperturbed one-opposition object)
+  151 - 160  a10    Computer name
+
+There may sometimes be additional information beyond column 160
+as follows:
+
+  162 - 165  z4.4   4-hexdigit flags
+                    The bottom 6 bits are used to encode a
+                    value representing the orbit type (other
+                    values are undefined):
+
+                      Value
+                        2  Aten
+                        3  Apollo
+                        4  Amor
+                        5  Object with q < 1.381 AU
+                        6  Object with q < 1.523 AU
+                        7  Object with q < 1.665 AU
+                        8  Hilda
+                        9  Jupiter Trojan
+                       10  Centaur
+                       14  Plutino
+                       15  Other resonant TNO
+                       16  Cubewano
+                       17  Scattered disk
+
+                    Additional information is conveyed by
+                    adding in the following bit values:
+
+                       64  Unused
+                      128  Unused
+                      256  Unused
+                      512  Unused
+                     1024  Unused
+                     2048  Unused
+                     4096  Unused
+                     8192  1-opposition object seen at
+                           earlier opposition
+                    16384  Critical list numbered object
+                    32768  Object is PHA
+
+  167 - 194  a      Readable designation
+
+  195 - 202  i8     Date of last observation included in
+                      orbit solution (YYYYMMDD format)
+
