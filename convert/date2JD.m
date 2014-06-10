@@ -8,7 +8,7 @@ function JD = date2JD(year, month, day, hour, minute, second)
 % scalar, the output will have the same size as the year argument.
 
 % Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% .ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.ï¿½`ï¿½.
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
 % Affiliation: Delft University of Technology

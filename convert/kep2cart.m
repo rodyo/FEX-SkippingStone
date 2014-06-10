@@ -57,13 +57,10 @@ function varargout = kep2cart(varargin)
 % Authors
 % .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
-
-% Last edited 02/Nov/2009
+% E-mail     : oldenhuis@gmail.com
 
     % default errortrap 
-    error(nargchk(2, 8, nargin));%#ok
+    error(nargchk(2, 8, nargin));
 
     % parse & check input
     thorM = 'M';
