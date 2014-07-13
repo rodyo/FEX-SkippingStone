@@ -450,7 +450,7 @@ result.DETAIL_LEG{ii} = states;
         if (ii == number_of_targets)             
             % ??? TODO - insert max Vinf into params
             [result.Vinf_target, result.violations.Vinf_target_violation] = ...
-                target(result.V_arrival(end,:), V_target_GAMbody, 1e5);% just a large value for now
+                target(result.V_arrival(end,:), V_target_GAMbody, params.max_arrival_C3);% just a large value for now
             % copy Vinf-target
             result.Vinf_min(end,:) = result.Vinf_target;
         end 

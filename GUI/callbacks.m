@@ -1073,6 +1073,14 @@ function varargout = callbacks(funfcn, varargin)
     
     %% Callbacks for arrival & postprocessing tab
     
+    %
+    function switch_arrival_type(varargin) %#ok
+        selected = get(varargin{1}, 'Value');
+        set([at.arrival_constraints{:}], 'Visible', 'off');
+        set(at.arrival_constraints{selected}, 'Visible', 'on');
+        
+    end
+    
     % enable or disable load / parameters buttons when 
     % user-costfunction is selected
     function arrival_costfunction_check(varargin)%#ok

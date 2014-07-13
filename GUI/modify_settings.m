@@ -190,15 +190,19 @@ function varargout = modify_settings(funfcn, varargin)
         c1.best.solution           = [];        c1.best.function_value     = [];
         c1.elapsed_time            = [];        c1.lambert_problems        = [];
         c1.ephemerides             = [];        c1.algorithm               = [];
+        
         % initialize BATCH
         calculation.results.BATCH = [];
+        
         % initialize second-order results structure               
         c2.elapsed_time  = [];        c2.best.solution = [];
         c2.integrations  = [];        c2.algorithm     = [];
-        c2.ephemerides   = [];     
+        c2.ephemerides   = [];    
+        
         % insert them into calculation
         calculation.results.first_order  = c1; clear c1;
         calculation.results.second_order = c2; clear c2;
+        
         
         %% settings, Launch & Satellite Data
                 
@@ -255,6 +259,7 @@ function varargout = modify_settings(funfcn, varargin)
         sp.different_Isp.Isp = 300;     % default different Isp     [s]        
         % insert these settings
         settings.propulsion = sp; clear sp;
+        
 
         %% settings, Sequence
         
@@ -308,18 +313,27 @@ function varargout = modify_settings(funfcn, varargin)
         % batch optimization 
         settings.BATCH.check = false; % default is OFF
         
+        
         %% settings, Arrival data & postprocessing
         
         % arrival
-        sa.type = 1;            % arrival type is flyby 
+        sa.type = 1;            % arrival type is flyby         
+        sa.user_cost_function = false; % use user-defined cost function at arrival
+        
+        % arrival constraints
+        sa.constraints.max_C3 = inf; % max C3 at arrival        
+        % ??? TODO: these should depend on target
+        sa.constraints.apocenter_altitude  = 250;
+        sa.constraints.pericenter_altitude = 250;
+        sa.constraints.inclination         = 0;
+        
         sa.gravity_loss = 0;    % gravity loss at arrival      [%]
         sa.mass_released = 0;   % mass released before arrival [kg]
-        sa.user_cost_function = false; % use user-defined cost function at arrival
-        % arrival constraints
-        sa.constraints.max_C3 = 0; % max C3 at arrival
+        
         % post-processing panel
         spp.check = false;
         spp.post_processor = 1; % (none) by default        
+        
         % "Find MP's close to the trajectory" post-processor
         spp.optimize_distance.check        = true;
         spp.threshold.check(1)             = false;
@@ -328,6 +342,7 @@ function varargout = modify_settings(funfcn, varargin)
         spp.variable_threshold.distance(1) = 0.01;
         spp.variable_threshold.distance(2) = 0.09;
         spp.variable_threshold.distance(3) = 30;
+        
         % insert these settings 
         settings.postprocessing = spp; clear spp;
         settings.arrival        = sa;  clear sa;
@@ -474,12 +489,19 @@ function varargout = modify_settings(funfcn, varargin)
         spp = settings.postprocessing;
         
         % arrival
-        set(at.ArrivalType           , 'value' , sa.type              );
-        set(at.ArrivalGravityLoss    , 'string', sa.gravity_loss      );
-        set(at.InsertionMassRelease  , 'string', sa.mass_released     );
+        set(at.ArrivalType           , 'value' , sa.type              );        
         set(at.usr_costfun_arrival(1), 'value' , sa.user_cost_function);
+        
         % arrival constraints
-        set(at.MaxArrivalC3, 'string', sa.constraints.max_C3);
+        set(at.MaxArrivalC3        , 'string', sa.constraints.max_C3);
+        
+        set(at.ApocenterAltitude   , 'string', sa.constraints.apocenter_altitude );
+        set(at.PericenterAltitude  , 'string', sa.constraints.pericenter_altitude);
+        set(at.Inclination         , 'string', sa.constraints.inclination);
+        
+        set(at.ArrivalGravityLoss  , 'string', sa.gravity_loss      );
+        set(at.InsertionMassRelease, 'string', sa.mass_released     );
+                
         % post-processing
         set(at.post_processing.check, 'value', spp.check);
         set(at.post_processing.post_processor(2), 'value', spp.post_processor);
