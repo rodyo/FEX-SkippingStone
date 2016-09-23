@@ -140,12 +140,17 @@ function [tout, yout, dyout, varargout] = rkn1210(funfcn, tspan, y0, yp0, option
 
 
 
-% Author:
-% Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% Please report bugs and inquiries to:
 %
-% please report any bugs or suggestions to oldnhuis@dds.nl.   
+% Name       : Rody P.S. Oldenhuis
+% E-mail     : oldenhuis@gmail.com    (personal)
+%              oldenhuis@luxspace.lu  (professional)
+% Affiliation: LuxSpace s�rl
+% Licence    : BSD
+
+
+% If you find this work useful, please consider a donation:
+% https://www.paypal.me/RodyO/3.5
 
 
 
