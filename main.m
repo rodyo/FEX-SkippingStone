@@ -7,15 +7,20 @@
 % way to teach new authors the ins-and-outs of how to make a
 % GUI.
 
-% Authors
-%{
- .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·
 
- Name       : Rody P.S. Oldenhuis
- E-mail     : oldenhuis@gmail.com
- Affiliation: Delft University of Technology
-              Partly performed at ISAS/JAXA
-%}
+% Please report bugs and inquiries to:
+%
+% Name       : Rody P.S. Oldenhuis
+% E-mail     : oldenhuis@gmail.com    (personal)
+%              oldenhuis@luxspace.lu  (professional)
+% Affiliation: LuxSpace s�rl
+% Licence    : BSD
+
+
+% If you find this work useful, please consider a donation:
+% https://www.paypal.me/RodyO/3.5
+
+
 
     
 % TODO-LIST
