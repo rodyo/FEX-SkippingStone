@@ -351,7 +351,7 @@ function varargout = modify_settings(funfcn, varargin)
         
         so.global.optimizer = [1,0,0];       % GODLIKE
         so.global.low_thrust_approximation = [1,0]; % Exponential Sinusoids        
-        % standards for OPTIMIZE()
+        % standards for MINIMIZE()
         oo = optimset('maxfunevals', 1e6, 'maxiter', 1e3); 
         oo.TolCon = 1e-6;  oo.popsize = [];  % non-standard options   
         so.global.optimizer_settings{3} = oo;% standard OPTIMIZE (fminsearch) options

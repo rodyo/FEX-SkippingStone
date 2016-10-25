@@ -1,0 +1,12 @@
+[submodule "orbital_mechanics/Lambert targeters/high_thrust"]
+	path = orbital_mechanics/Lambert targeters/high_thrust
+	url = https://github.com/rodyo/FEX-Lambert
+[submodule "misc_math/rkn1210"]
+	path = misc_math/rkn1210
+	url = https://github.com/rodyo/FEX-RKN1210
+[submodule "GUI/settingsdlg"]
+	path = GUI/settingsdlg
+	url = https://github.com/rodyo/FEX-settingsdlg
+[submodule "optimization/minimize"]
+	path = optimization/minimize
+	url = https://github.com/rodyo/FEX-minimize

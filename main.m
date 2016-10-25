@@ -13,7 +13,7 @@
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@gmail.com    (personal)
 %              oldenhuis@luxspace.lu  (professional)
-% Affiliation: LuxSpace s�rl
+% Affiliation: LuxSpace sarl
 % Licence    : BSD
 
 

@@ -1029,7 +1029,7 @@ function varargout = optimizer(obj, obj_params, seq)
             [solution, funval, varargout{3:nargout-2}] = ...
                 GODLIKE(@(X)obj(X, obj_params), LB, UB, [], options);
             
-        % use OPTIMIZE() (FMINSEARCH = NELDERMEAD)
+        % use MINIMIZE() (FMINSEARCH = NELDERMEAD)
         elseif settings.optimize.global.optimizer(2)
             % get current options
             options = settings.optimize.global.optimizer_settings{2};
@@ -1042,12 +1042,12 @@ function varargout = optimizer(obj, obj_params, seq)
             % insert non-settable options
             options.OutputFcn = @outputFcn;
             options.ConstraintsInObjectiveFunction = 2;   
+            options.Algorithm = 'fminsearch';
             % and optimize
-            [solution, funval, varargout{3:nargout-2}] =...
-                optimize(@(X)obj(X, obj_params), [],[],[],[],[], LB, UB, ...
-                [],[], options, 'NelderMead'); 
+            [solution, funval, varargout{3:nargout-2}] = ...
+                minimize(@(X)obj(X, obj_params), [], [],[], [],[], LB,UB, [], options); 
             
-        % use OPTIMIZE() (FMINLBFGS)
+        % use MINIMIZE() (FMINLBFGS)
         elseif settings.optimize.global.optimizer(3)
             % get current options
             options = settings.optimize.global.optimizer_settings{3};
@@ -1060,10 +1060,10 @@ function varargout = optimizer(obj, obj_params, seq)
             % insert non-settable options
             options.OutputFcn = @outputFcn;
             options.ConstraintsInObjectiveFunction = 2;
+            options.Algorithm = 'fminlbfgs';
             % and optimize
-            [solution, funval, varargout{3:nargout-2}] =...
-                optimize(@(X)obj(X, obj_params), [],[],[],[],[], LB, UB, ...
-                [],[], options, 'fminlbfgs');
+            [solution, funval, varargout{3:nargout-2}] = ...
+                minimize(@(X)obj(X, obj_params), [], [],[], [],[], LB,UB, [], options);
             
         end
              
@@ -1102,20 +1102,23 @@ function varargout = optimizer(obj, obj_params, seq)
                                 'algorithm'  , 'interior-point');
                             [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                                 solution,[],[],[],[],LB,UB,@constraints_wrapper,options);
-                        catch%#ok...so use OPTIMIZE(); FMINCON() has utterly failed us
+                        catch%#ok...so use MINIMIZE(); FMINCON() has utterly failed us
                             options.ConstraintsInObjectiveFunction = 2;
-                            [solution, funval] = optimize(@(X)obj(X, obj_params),...
-                                solution,[],[],[],[],LB,UB,[],[], options, 'NelderMead');
+                            options.Algorithm = 'fminsearch';
+                            [solution, funval] = minimize(@(X)obj(X, obj_params),...
+                                solution, [],[], [],[], LB,UB, [], options);
                         end
                     end
                 % Constrained Nelder-Mead
                 elseif settings.optimize.local.optimizer(2)
-                    [solution, funval] = optimize(@(X)obj(X, obj_params),...
-                        solution,[],[],[],[],LB,UB,[],[], options, 'NelderMead');
+                    options.Algorithm = 'fminsearch';
+                    [solution, funval] = minimize(@(X)obj(X, obj_params),...
+                        solution, [],[], [],[], LB,UB, [], options);
                 % Constrained quasi-Newton (L)BFGS
                 elseif settings.optimize.local.optimizer(3)
-                    [solution, funval] = optimize(@(X)obj(X, obj_params), ...
-                        solution,[],[],[],[],LB,UB,[],[], options, 'fminlbfgs');
+                    options.Algorithm = 'fminlbfgs';
+                    [solution, funval] = minimize(@(X)obj(X, obj_params), ...
+                        solution, [],[], [],[], LB,UB, [], options);
                 end
             end
             
@@ -1223,20 +1226,23 @@ UB(2) = 50;
                         'algorithm'  , 'interior-point');
                     [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                         initial_estimate,[],[],[],[],LB,UB,@constraints_wrapper,options);
-                catch%#ok...so use OPTIMIZE(); FMINCON() has utterly failed us
+                catch%#ok...so use MINIMIZE(); FMINCON() has utterly failed us
                     options.ConstraintsInObjectiveFunction = 2;
-                    [solution, funval] = optimize(@(X)obj(X, obj_params),...
-                        initial_estimate,[],[],[],[],LB,UB,[],[], options, 'NelderMead');
+                    options.Algorithm = 'fminsearch';
+                    [solution, funval] = minimize(@(X)obj(X, obj_params),...
+                        initial_estimate, [],[], [],[], LB,UB, [], options);
                 end
             end
         % Constrained Nelder-Mead
         elseif settings.optimize.local.optimizer(2)
-            [solution, funval] = optimize(@(X)obj(X, obj_params),...
-                initial_estimate,[],[],[],[],LB,UB,[],[], options, 'NelderMead');
+            options.Algorithm = 'fminsearch';
+            [solution, funval] = minimize(@(X)obj(X, obj_params),...
+                initial_estimate, [],[], [],[], LB,UB, [], options);
         % Constrained quasi-Newton (L)BFGS
         elseif settings.optimize.local.optimizer(3)
-            [solution, funval] = optimize(@(X)obj(X, obj_params), ...
-                initial_estimate,[],[],[],[],LB,UB,[],[], options, 'fminlbfgs');
+            options.Algorithm = 'fminlbfgs';
+            [solution, funval] = minimize(@(X)obj(X, obj_params), ...
+                initial_estimate, [],[], [],[], LB,UB, [], options);
         end
         
         % assign output arguments
@@ -1305,7 +1311,7 @@ UB(2) = 50;
                     endmass = abs(optimValues.fval);
                     if isfield(optimValues, 'constrviolation')
                         if isfield(optimValues.constrviolation, 'nonlin_ineq')
-                            % OPTIMIZE()
+                            % MINIMIZE()
                             violation = optimValues.constrviolation.nonlin_ineq{2};
                         else
                             % FMINCON()

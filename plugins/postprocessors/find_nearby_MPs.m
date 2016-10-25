@@ -451,11 +451,11 @@ R.rel_speed = sum(R.rel_speed,2);
                     'MaxFunEvals', maxfuneval,...
                     'display'    , 'off');
                 options.ConstraintsInObjectiveFunction = 2;
+                options.Algorithm = 'fminsearch';
                 % define proper objective & constraint fucntions
                 objective  = @(X) mindist_to_MPs_objective_function(X, 'both');
                 % and optimize
-                solution = ...
-                    optimize(objective, x0, [],[],[],[], LB,UB, [],[], options, 'fminsearch');
+                solution = minimize(objective, x0, [],[], [],[], LB,UB, [], options);
             % Constrained quasi-Newton (L)BFGS
             elseif settings.optimize.local.optimizer(3)
                 % set options
@@ -463,11 +463,12 @@ R.rel_speed = sum(R.rel_speed,2);
                     'MaxFunEvals', maxfuneval,...
                     'display'    , 'off');
                 options.ConstraintsInObjectiveFunction = 2;
+                options.Algorithm = 'fminlbfgs';
                 % define proper objective & constraint fucntions
                 objective  = @(X) mindist_to_MPs_objective_function(X, 'both');
                 % and optimize
                 solution = ...
-                    optimize(objective, x0, [],[],[],[], LB,UB, [],[], options, 'fminlbfgs');
+                    minimize(objective, x0, [],[], [],[], LB,UB, [], options);
             end
             
             %% evaluate new solution
