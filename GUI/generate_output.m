@@ -79,13 +79,13 @@ settings.plot_options.resolution = 'low';
 
     elseif strcmpi(embedding, 'separate_trajectory')     
         trajectory_external  = true;
-        MainFig(2)           = figure;
+        MainFig(2)           = figure('renderer', 'opengl');
         trajectory_axes      = axes('parent', MainFig(2));
         trajectory_infopane  = [];
 
     elseif strcmpi(embedding, 'separate_Paretofront')   
         Paretos_external = true;
-        MainFig(1)       = figure;  
+        MainFig(1)       = figure('renderer', 'opengl');
         Pareto_axes      = axes('parent', MainFig(1));  
         Pareto_infopane  = [];
     end
