@@ -58,7 +58,7 @@ function model = initialize_ephemerides_generators(seq, model, type)
                 % insert the ones that have been found
                 good_inds = user_bodies(~static_user_bodies & eph_files_exist);
                 if any(good_inds)
-                    [dummy, statevecData{good_inds}] = evalc(['@',eph_files(good_inds)]);
+                    [dummy, statevecData{good_inds}] = evalc(['@',eph_files(good_inds)]); %#ok<ASGLU>
                 end
                 % if it doesn't exist, try to generate it using Kepler
                 if any(~good_inds)
@@ -92,7 +92,7 @@ function model = initialize_ephemerides_generators(seq, model, type)
         how_many   = nnz(~loaded(which_ones));
         % initialize progress bar
         progress_bar(0, 'Interpolating state-vectors, ');
-        step = 1/how_many;
+        %step = 1/how_many;
         % load selected statevectors
         for ii = 1:how_many
             % what's the current body?

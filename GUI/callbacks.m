@@ -908,7 +908,7 @@ function varargout = callbacks(funfcn, varargin)
             % disable all controls while loading
             [objects, states] = disable_all;
             % load the names
-            model = minor_planets_parameters(model, environment, false);
+            model = minor_planets_parameters(model, environment, constants, false);
             % save the settings
             settings.model(4) = true;
             % reset all controls
@@ -1044,7 +1044,7 @@ function varargout = callbacks(funfcn, varargin)
         
         % also reload the names
         progress_bar(1, '(Re)loading MP-names...'); pause(0.5) 
-        model = minor_planets_parameters(model, environment, true);        
+        model = minor_planets_parameters(model, environment, constants, true);        
         
         % enable all controls again
         reset_all(objects, states);

@@ -1,4 +1,4 @@
-function model = minor_planets_parameters(model, environment, reload)
+function model = minor_planets_parameters(model, environment, constants, reload)
 %MINOR_PLANET_PARAMETERS    Definition file for various parameters for asteroids.
 %
 %   MINOR_PLANET_PARAMETERS only loads the names of
@@ -10,7 +10,7 @@ function model = minor_planets_parameters(model, environment, reload)
 % Authors
 % .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
+% E-mail     : oldenhuis@gmail.com
 % Affiliation: Delft University of Technology
 %
 
@@ -20,10 +20,7 @@ function model = minor_planets_parameters(model, environment, reload)
     persistent loaded
     if isempty(loaded)
         loaded = false; end    
-    
-    % number of lines that comprises the header (see descriptions in data dir)
-    headerlines = 39;
-    
+        
     % set proper filename
     environment.pathing.MP_filename = fullfile(environment.pathing.datadir, ...
                                                'asteroids',...
@@ -40,66 +37,25 @@ function model = minor_planets_parameters(model, environment, reload)
         % check if the datafile is present
         if (exist(filename,'file') == 2)
             
-            % Total amount of Minor Planets
-            total = countlines(filename) - headerlines;
-        
-            % open the file
-            fid = fopen(filename); 
-
-            % read blocks of 10.000 at a time to prevent out-of-memory errors
-            MP_names  = []; 
-            counter   = 0; 
-            batch_MPs = 1e4;            
-            while ~feof(fid)
-                if (counter == 0)
-                    % skip the header in the first read
-                    names = textscan(fid,...
-                                     '%*166s%27s%*9s',...
-                                     batch_MPs, ...
-                                     'headerlines', headerlines,...                        
-                                     'Whitespace', '');
-                else
-                    names = textscan(fid,...
-                                     '%*166s%27s%*9s',...
-                                     batch_MPs,...
-                                     'Whitespace', '');
-                end                
-                counter = counter + batch_MPs;
-                names   = strtrim(names);
-                                
-                progress_bar(counter/total, [num2str(counter), ' sucessfully read...']);                
-                MP_names = [MP_names; 
-                            names{:}];  %#ok<AGROW>
-            end
-            fclose(fid);
-
-            % insert data into model
-            model.MPs.MP_names = MP_names;
-            model.MPs.number_of_MPs = numel(model.MPs.MP_names);
-
-            % update and close waitbar
-            progress_bar(1, [num2str(model.MPs.number_of_MPs), ' names loaded into memory.']);
-            pause(1)
-
-            % keep them in the workspace until the program is closed,
-            % or the datafile is updated
-            loaded = true;
-
-            % reset the progress bar
-            progress_bar('');
-        
+            model = minor_planets_model(model,...
+                                        constants,...
+                                        environment,...
+                                        reload);
+                    
         % If the file doesn't exist, run update procedure
         else
             % pop the question here
             ButtonPressed = questdlg({'The MPCORB-database was not found.'
-                'Do you wish to download it now?'}, 'MPCORB.DAT not found', 'Yes', 'Cancel', 'Yes');
+                                      'Do you wish to download it now?'}, ...
+                                      'MPCORB.DAT not found', 'Yes', 'Cancel', 'Yes');
+                                  
             % when affirmative, update the MP-model
             if strcmpi(ButtonPressed, 'yes')
                 callbacks('update_minor_planets_data', false);
+                
             % otherwise, uncheck the checkbox andadjust the settings
             else
                 callbacks('MPs_check', true);
-                % also reset progress bar
                 progress_bar('')
             end
         end % if file exists       
