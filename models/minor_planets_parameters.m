@@ -18,57 +18,68 @@ function model = minor_planets_parameters(model, environment, reload)
     
     % keep track of whether the MP-names have been loaded
     persistent loaded
-    if isempty(loaded), loaded = false; end    
+    if isempty(loaded)
+        loaded = false; end    
+    
+    % number of lines that comprises the header (see descriptions in data dir)
+    headerlines = 39;
     
     % set proper filename
-    environment.pathing.MP_filename = ...
-        [environment.pathing.datadir, filesep, 'asteroids', filesep, 'MPCORB.DAT'];
+    environment.pathing.MP_filename = fullfile(environment.pathing.datadir, ...
+                                               'asteroids',...
+                                               'MPCORB.DAT');
+    filename = environment.pathing.MP_filename;
     
     % if they have not been loaded before, load them now
     if (~loaded || reload)
         
         % intialize progress bar
-        progress_bar(0, 'Reading minor planet names, please wait...'); pause(0.25)
+        progress_bar(0, 'Reading minor planet names, please wait...'); 
+        pause(0.25)
                 
         % check if the datafile is present
-        if (exist(environment.pathing.MP_filename, 'file') == 2)
+        if (exist(filename,'file') == 2)
+            
+            % Total amount of Minor Planets
+            total = countlines(filename) - headerlines;
         
             % open the file
-            fid = fopen(environment.pathing.MP_filename); 
+            fid = fopen(filename); 
 
             % read blocks of 10.000 at a time to prevent out-of-memory errors
-            MP_names = []; counter = 0; num_MPs = 1e4;
-            total = 400000; % <- first estimate on the total amount of Minor Planets
+            MP_names  = []; 
+            counter   = 0; 
+            batch_MPs = 1e4;            
             while ~feof(fid)
                 if (counter == 0)
                     % skip the header in the first read
-                    names = textscan(fid, '%*166s%27s%*9s', num_MPs, ...
-                        'headerlines', 39, 'Whitespace', '');
+                    names = textscan(fid,...
+                                     '%*166s%27s%*9s',...
+                                     batch_MPs, ...
+                                     'headerlines', headerlines,...                        
+                                     'Whitespace', '');
                 else
-                    names = textscan(fid, '%*166s%27s%*9s', num_MPs, 'Whitespace', '');
-                end
-                % increase counter
-                counter = counter + num_MPs;
-                % remove spaces 
-                names = strtrim(names);
-                % show progress            
-                progress_bar(counter/total, [num2str(counter), ' sucessfully read...']);
-                % append names to output
-                MP_names = [MP_names; names{:}]; %#ok
+                    names = textscan(fid,...
+                                     '%*166s%27s%*9s',...
+                                     batch_MPs,...
+                                     'Whitespace', '');
+                end                
+                counter = counter + batch_MPs;
+                names   = strtrim(names);
+                                
+                progress_bar(counter/total, [num2str(counter), ' sucessfully read...']);                
+                MP_names = [MP_names; 
+                            names{:}];  %#ok<AGROW>
             end
-
-            % insert names into model
-            model.MPs.MP_names = MP_names;
-
-            % flose the file
             fclose(fid);
 
-            % set number of asteroids
+            % insert data into model
+            model.MPs.MP_names = MP_names;
             model.MPs.number_of_MPs = numel(model.MPs.MP_names);
 
             % update and close waitbar
             progress_bar(1, [num2str(model.MPs.number_of_MPs), ' names loaded into memory.']);
-            pause(1) % total number of asteroids should be visible for at least SOME time
+            pause(1)
 
             % keep them in the workspace until the program is closed,
             % or the datafile is updated
@@ -77,7 +88,7 @@ function model = minor_planets_parameters(model, environment, reload)
             % reset the progress bar
             progress_bar('');
         
-        % if the file doesn't exist, run update procedure
+        % If the file doesn't exist, run update procedure
         else
             % pop the question here
             ButtonPressed = questdlg({'The MPCORB-database was not found.'
@@ -92,5 +103,7 @@ function model = minor_planets_parameters(model, environment, reload)
                 progress_bar('')
             end
         end % if file exists       
-    end % if not loaded      
+    end % if not loaded 
+    
 end % minor planets parameters
+

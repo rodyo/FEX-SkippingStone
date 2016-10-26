@@ -65,23 +65,23 @@
 
 %% Construct main window, and load all defaults
 
-function varargout = main(varargin)
+function varargout = main(varargin) %#ok<VANUS>
 % Last edited 19/Nov/2009.
     
     % global variables
     global MainWin 
-    global launch_tab sequence_tab arrival_tab optimization_tab output_tab
+    global launch_tab sequence_tab arrival_tab algorithms_tab output_tab
     global Pareto_tab trajectory_tab central_body_speed post_processing 
     global BATCH_optimization optimization_statistics 
     
     % give tab numbers a name for clarity
     % tabs on main window       % tabs on output tab
-    launch_tab       = 1;       Pareto_tab         = 1;
-    sequence_tab     = 2;       trajectory_tab     = 2;
-    arrival_tab      = 3;       central_body_speed = 3;    
-    optimization_tab = 4;       post_processing    = 4;    
-    output_tab       = 5;       BATCH_optimization = 5;
-                                optimization_statistics = 6;        
+    launch_tab      = 1;       Pareto_tab         = 1;
+    sequence_tab    = 2;       trajectory_tab     = 2;
+    arrival_tab     = 3;       central_body_speed = 3;    
+    algorithms_tab  = 4;       post_processing    = 4;    
+    output_tab      = 5;       BATCH_optimization = 5;
+                               optimization_statistics = 6;        
     % Current version
     Version = '0.8 beta'; % working, but far from perfect...:D 
     % return version if requested

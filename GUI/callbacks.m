@@ -61,7 +61,7 @@ function varargout = callbacks(funfcn, varargin)
     
     % declare globals
     global MainWin current_tab current_output_tab
-    global launch_tab sequence_tab arrival_tab optimization_tab output_tab
+    global launch_tab sequence_tab arrival_tab algorithms_tab output_tab
     global Pareto_tab trajectory_tab central_body_speed post_processing 
     global BATCH_optimization optimization_statistics 
         
@@ -76,7 +76,7 @@ function varargout = callbacks(funfcn, varargin)
     % some abbreviations
     lt = handles.tab(launch_tab);     st  = handles.tab(sequence_tab);
     at = handles.tab(arrival_tab);    ot  = handles.tab(output_tab);     
-    ct = handles.tab(current_tab);    opt = handles.tab(optimization_tab);
+    ct = handles.tab(current_tab);    alg = handles.tab(algorithms_tab);
     
     % convert to function handle
     % NOTE: STR2FUNC() doesn't work in this context!
@@ -191,7 +191,7 @@ function varargout = callbacks(funfcn, varargin)
             % draw logo
             imagesc(logo, 'Parent', logo_axes);
             axis off
-        catch ME
+        catch ME,ME; %#ok<VUNUS>
             warndlg(ME.message, 'Logo not found');
         end % draw logo
         
@@ -244,7 +244,7 @@ function varargout = callbacks(funfcn, varargin)
             try
                 new_settings = load([settings_path, settings_file], ...
                     'settings', '-MAT');
-            catch ME
+            catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to load file:'; ME.message}, 'Load failed')
                 return
             end            
@@ -265,7 +265,7 @@ function varargout = callbacks(funfcn, varargin)
     end % load settings
     
     % save settings
-    function success = save_settings(varargin)
+    function success = save_settings(varargin) %#ok<VANUS>
         [settings_file, settings_path] = uiputfile({'*.cfg'}, ...
             ['Save ', environment.program_name, ' configuration settings']);        
         % if cancel was not pressed
@@ -274,7 +274,7 @@ function varargout = callbacks(funfcn, varargin)
             try
                 save([settings_path, settings_file], 'settings', '-MAT');
                 success = true;
-            catch ME
+            catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to save file:'; ME.message}, 'Save failed')
                 success = false;
             end         
@@ -303,7 +303,7 @@ function varargout = callbacks(funfcn, varargin)
                 progress_bar(0, 'Loading results...');
                 new_calculation = load([results_path, results_file], ...
                     'calculation', '-MAT');
-            catch ME
+            catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to load file:'; ME.message}, 'Load failed')
                 return
             end            
@@ -328,7 +328,7 @@ function varargout = callbacks(funfcn, varargin)
     end % load results
     
     % save results
-    function save_results(varargin)
+    function save_results(varargin) %#ok<VANUS>
         % first some checks
         if isempty(calculation.results.first_order.best.solution) && ...
            isempty(calculation.results.second_order.best.solution)
@@ -346,7 +346,7 @@ function varargout = callbacks(funfcn, varargin)
             try                
                 save([results_path, results_file], 'calculation', '-MAT');                
                 set(MainWin, 'UserData', 'clean');                
-            catch ME
+            catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to save file:'; ME.message}, 'Save failed')
             end             
         end
@@ -373,8 +373,8 @@ function varargout = callbacks(funfcn, varargin)
             switch lower(type)
                 case {'tab' 'csv'}
                     % set delimiter
-                    if strcmp(type, 'tab'), delim = '\t';
-                    else delim = ',';
+                    if strcmp(type, 'tab'), delim = '\t';  %#ok<NASGU>
+                    else delim = ',';                      %#ok<NASGU>
                     end
                     % try to DLMwrite "calculation"
                     try
@@ -382,10 +382,10 @@ function varargout = callbacks(funfcn, varargin)
                         % we'll have to call dlmwrite recursively for each
                         % fieldname of [calculation], and prepend the
                         % matrix with a label:
-                        error(' ');
+                        error(' '); %#ok<ERTAG>
                         %dlmwrite([results_path,results_file], calculation, ...
                         %    'delimiter', delim);
-                    catch ME
+                    catch ME %#ok<MUCTH,NASGU>
                         % NOTHING YET..
                         not_yet_done;
                     end
@@ -402,8 +402,12 @@ function varargout = callbacks(funfcn, varargin)
     
     % import results
     function import_results(type, varargin)%#ok
+        
         [results_file, results_path] = uigetfile({['*.' type]}, ...
-            ['Import ', environment.program_name, ' calculation results']);        
+            ['Import ',...
+            environment.program_name,...
+            ' calculation results']);         %#ok<NASGU>
+        
         % if cancel was not pressed
         if ischar(results_file) 
             % check if results are unsaved
@@ -419,8 +423,8 @@ function varargout = callbacks(funfcn, varargin)
             switch lower(type)
                 case {'tab' ;'csv'}
                     % set delimiter
-                    if strcmp(type, 'tab'), delim = '\t';
-                    else delim = ',';
+                    if strcmp(type, 'tab'), delim = '\t';  %#ok<NASGU>
+                    else delim = ',';                      %#ok<NASGU>
                     end
                     % try to DLMwrite "calculation"
                     try
@@ -428,9 +432,9 @@ function varargout = callbacks(funfcn, varargin)
                         % we'll have to call dlmread recursively for each
                         % fieldname of [calculation], depending on the 
                         % prepended label (see export_results):
-                        error(' ');
+                        error(' '); %#ok<ERTAG>
                         %dlmread([results_path,results_file], delim);
-                    catch ME
+                    catch ME %#ok<MUCTH,NASGU>
                         % NOTHING YET..
                         not_yet_done;
                     end
@@ -469,7 +473,7 @@ function varargout = callbacks(funfcn, varargin)
     end
         
     % enable/disable Panel mass edit box
-    function enable_jettison(varargin)
+    function enable_jettison(varargin) %#ok<VANUS>
         % enable/disable appropriate controls        
         if get(lt.SEP(7), 'value')
             set(lt.Jettison, 'enable', 'on');
@@ -519,7 +523,7 @@ function varargout = callbacks(funfcn, varargin)
     end
    
     % enable/disable capture Isp
-    function captureIsp(varargin)
+    function captureIsp(varargin) %#ok<VANUS>
         % if checkbox is on        
         if get(lt.Isp(1), 'value')
             set(lt.Isp(2:end), 'enable', 'on')            
@@ -579,7 +583,7 @@ function varargout = callbacks(funfcn, varargin)
     end  
     
     % enable or disable swingby's according to user's selection
-    function switch_bodies(which_GAM_body, varargin)
+    function switch_bodies(which_GAM_body, varargin) %#ok<VANUS>
         % and what body was selected
         what_body = get(st.GAM.body(which_GAM_body), 'value') - 1;        
         % if not 'none' was selected
@@ -649,7 +653,7 @@ function varargout = callbacks(funfcn, varargin)
     
     % change the minimum altitudes (a neccessary exception to
     % MODIFY_SETTINGS('change_single_setting'))
-    function change_minimum_altitude(which_one, check, varargin)
+    function change_minimum_altitude(which_one, check, varargin) %#ok<VANUS>
         % get currently selected body
         current_body = get(st.GAM.body(which_one), 'value') - 1; % remove 'none'
         % get the new value
@@ -743,7 +747,7 @@ function varargout = callbacks(funfcn, varargin)
     
     % disable L/D and Max.DV-controls, depending on the 
     % corresponding GAM-type setting
-    function change_GAM_type(number, varargin)
+    function change_GAM_type(number, varargin) %#ok<VANUS>
         % get the new setting
         new_type = get(st.GAM.type(number), 'string');
         if ~iscell(new_type), new_type = {new_type}; end
@@ -829,7 +833,7 @@ function varargout = callbacks(funfcn, varargin)
     end
     
     % choose a minor planet as target    
-    function MP_target_body(varargin)
+    function MP_target_body(varargin) %#ok<VANUS>
         
         % nothing yet...
         not_yet_done;
@@ -956,28 +960,39 @@ function varargout = callbacks(funfcn, varargin)
         % create progress window
         progress_bar(0, 'Updating minor planet model-file, please wait...'); pause(0.25)
         
-        % update the MPCORB       
-        progress_bar(0, 'Connecting to MPC, please wait...');
-        renamed = false; step = 0;
-        try
-            f = ftp('ftp.astro.cz', 'mpcorb', 'Ceres');
-            progress_bar(0.1, 'Connecting to MPC, please wait...Connected!');
+        % update the MPCORB               
+        renamed = false; 
+        step = 0;
+        try            
+            url     = 'http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT';
+            outfile = fullfile(environment.pathing.datadir,...
+                               'asteroids', 'MPCORB.DAT');
             
             pause(1), step = 1;            
             progress_bar(0.2, 'Backing up old file...');       
             if (exist(environment.pathing.MP_filename, 'file') == 2)
                 success = movefile(environment.pathing.MP_filename, ...
-                    [environment.pathing.datadir, filesep, 'asteroids', filesep, 'MPCORB.BAK'], 'f');
+                                   fullfile(environment.pathing.datadir, 'asteroids', 'MPCORB.BAK'),...
+                                   'f');
             else
                 progress_bar(0.2, 'Old file does not exist.');       
                 success = true;
             end
-            if ~success, error(' '), end % <- force TRY block to fail
+            assert(success, ' '); % <- force TRY block to fail
             
-            renamed = true; step = 2;            
-            progress_bar(0.5, 'Downloading latest file, please wait...');
-            ascii(f); mget(f, 'MPCORB.DAT', ...
-                [environment.pathing.datadir, filesep, 'asteroids', filesep]); close(f);
+            renamed = true; 
+            step = 2;            
+            progress_bar(0.5, 'Downloading latest file, please wait...');            
+            if verLessThan('MATLAB', '8.4')
+                [outfilename, status] = urlwrite(url,outfile);
+            else
+                status = 1;
+                outfilename = websave(outfile, url);
+            end      
+            
+            assert(status==1 && ~isempty(outfilename),...
+                   ' '); % <-- force try/catch to fail
+            
             progress_bar(1, 'Downloading latest file, please wait...completed.');
             
         catch %#ok
@@ -985,18 +1000,19 @@ function varargout = callbacks(funfcn, varargin)
             switch step
                 case 0
                     errordlg({'Connection failed!';...
-                        'Is an internet connection available?'},...
-                        'Conection failed')
+                             'Is an internet connection available?'},...
+                             'Conection failed')
                 case 1
                     errordlg({'Could not create back-up of old file.'; ....
-                        'Check if a file called `MPCORB.DAT` is located in'; ...
-                        [environment.pathing.datadir, filesep, 'asteroids', filesep]},...
-                        'Backup failed')
+                             'Check if a file called `MPCORB.DAT` is located in'; ...
+                             fullfile(environment.pathing.datadir, 'asteroids')},...
+                             'Backup failed')
                 case 2
                     errordlg({'Downloading of `MPCORB.DAT` failed!'; ...
-                        'Check if MPC updated their systems.'}, ...
-                        'Download failed')
+                            'Check if MPC updated the location of the data file.'}, ...
+                            'Download failed')
             end
+            
             % if the last step failed, try to rename the file 
             % back to its old name
             if renamed
@@ -1004,7 +1020,9 @@ function varargout = callbacks(funfcn, varargin)
                     success = movefile(...
                         [environment.pathing.datadir, filesep, 'asteroids', filesep, 'MPCORB.BAK'],...
                         environment.MP_filename);
-                    if ~success, error(' '), end % <- force TRY block to fail
+                    if ~success
+                        error(' '), end %#ok<ERTAG> % <- force TRY block to fail
+                    
                 catch %#ok
                     environment.pathing.MP_filename = [environment.pathing.datadir, ...
                         filesep, 'asteroids', filesep, 'MPCORB.BAK'];
@@ -1018,6 +1036,7 @@ function varargout = callbacks(funfcn, varargin)
             reset_all(objects, states);
             % and return            
             return
+            
         end
         
         % update progress bar
@@ -1159,37 +1178,37 @@ function varargout = callbacks(funfcn, varargin)
         end
     end % find nearby MPs threshold
     
-    %% Callbacks for optimization tab
+    %% Callbacks for algorithms tab
     
     % disable certain global optimizers in case of 
     % multi-objective optimization
-    function objectives_selection(varargin)
+    function objectives_selection(varargin) %#ok<VANUS>
         % collect statusses
-        selected = [get(opt.MaxPayloadObjective  , 'value')
-                    get(opt.MinTOFObjective      , 'value')
-                    get(opt.OtherObjectives.check, 'value')];
+        selected = [get(alg.MaxPayloadObjective  , 'value')
+                    get(alg.MinTOFObjective      , 'value')
+                    get(alg.OtherObjectives.check, 'value')];
         % max. payload mass should always be selected
         if ~selected(1)
-            set(opt.MaxPayloadObjective, 'value', 1);
+            set(alg.MaxPayloadObjective, 'value', 1);
             settings.optimize.objectives.max_mass = true;
         end                
         % disable all global optimizers but GODLIKE when 
         % multiple objectives are selected       
         if nnz(selected) > 1
-            set(opt.glob_opt_group, 'SelectedObject',...
-                opt.global_optimizer(1));            
-            set(opt.global_optimizer(2:end), 'enable', 'off');          
+            set(alg.glob_opt_group, 'SelectedObject',...
+                alg.global_optimizer(1));            
+            set(alg.global_optimizer(2:end), 'enable', 'off');          
             settings.optimize.global.optimizer = [true; false; false];
         % enable them if this is not the case
         else
-            set(opt.global_optimizer(2:end), 'enable', 'on');
+            set(alg.global_optimizer(2:end), 'enable', 'on');
         end
         % enable/disable "Load..." button when "Other objectives" are
         % selected
         if selected(3)
-            set(opt.OtherObjectives.button, 'enable', 'on')
+            set(alg.OtherObjectives.button, 'enable', 'on')
         else
-            set(opt.OtherObjectives.button, 'enable', 'off')
+            set(alg.OtherObjectives.button, 'enable', 'off')
         end
     end % objectives selection
     
@@ -1400,7 +1419,7 @@ function varargout = callbacks(funfcn, varargin)
         change_costfcn;
         
         % callback for OK-button
-        function OK(varargin)
+        function OK(varargin) %#ok<VANUS>
             % if "none" was selected, de-select the checkbox and its setting
             if (get(listbox, 'value') == 1)
                 % reset fields to empty
@@ -1409,7 +1428,7 @@ function varargout = callbacks(funfcn, varargin)
                 settings.optimize.objectives.other.use = false;
                 settings.optimize.objectives.other.axis_label = '';
                 % and de-select the checkbox
-                set(opt.OtherObjectives.check, 'value', false);
+                set(alg.OtherObjectives.check, 'value', false);
                 objectives_selection;
                 
             % otherwise, adjust the appropriate settings 
@@ -1425,7 +1444,7 @@ function varargout = callbacks(funfcn, varargin)
         end
                   
         % change description when another costfunction is selected
-        function change_costfcn(varargin)
+        function change_costfcn(varargin) %#ok<VANUS>
             % find which one was selected
             selected_costfcn = get(listbox, 'value')-1; % subtract "none" entry
             % change the description
@@ -1512,19 +1531,26 @@ function varargout = callbacks(funfcn, varargin)
     %% Other callbacks
     
     % Show/hide specific tabs
-    function showtab(whichtab, varargin)%#ok        
+    function showtab(whichtab, varargin)%#ok  
+        
+        if current_tab == whichtab
+            return; end
+        
         % hide previous tab        
         set(handles.tabbutton(current_tab),...
             'fontweight', 'normal',...
             'value'     , 0); 
         set(ct.panel, 'visible', 'off');           
+        
         % show the tab and accentuate the button        
         set(handles.tabbutton(whichtab),...
             'fontweight', 'bold', ...
             'value'     , 1);        
         set(handles.tab(whichtab).panel, 'visible', 'on');        
+        
         % set new current tab 
-        current_tab = whichtab;    
+        current_tab = whichtab;   
+        
     end % show tab
     
     % disable every control

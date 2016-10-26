@@ -3,7 +3,7 @@ function varargout = modify_settings(funfcn, varargin)
     %% Initialize
     
     % get globals
-    global MainWin launch_tab sequence_tab arrival_tab optimization_tab 
+    global MainWin launch_tab sequence_tab arrival_tab algorithms_tab 
     
     % get all appdata
     if ishandle(MainWin)
@@ -383,7 +383,7 @@ function varargout = modify_settings(funfcn, varargin)
     %% Change all settings
     
     % set all values according to current settings
-    function change_all_settings%#ok
+    function change_all_settings() %#ok
         
         %% Launch & Satellite Data
         
@@ -512,7 +512,7 @@ function varargout = modify_settings(funfcn, varargin)
         %% Optimization
         
         % some abbreviations
-        ot = handles.tab(optimization_tab);
+        ot = handles.tab(algorithms_tab);
         so = settings.optimize;
         
         % data

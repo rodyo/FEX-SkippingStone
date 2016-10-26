@@ -1,4 +1,5 @@
 slprj/
+codegen/
 *.mexw32
 *.mexglx
 *.mexmaci
@@ -8,4 +9,5 @@ slprj/
 *.zip
 *.m~
 *.asv
+*.dat
 

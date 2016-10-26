@@ -1,22 +1,22 @@
 %% Callback function for the optimize! button
 
-function optimize_button(varargin) 
+function optimize_button(varargin)
 % last updated 21/Nov/2009
-    
+
     %% Initialize
-    
+
     % get globals
     global MainWin sequence_tab output_tab
-        
-    % extract relevant data    
+
+    % extract relevant data
     settings    = getappdata(MainWin, 'settings'   );
     calculation = getappdata(MainWin, 'calculation');
     handles     = getappdata(MainWin, 'handles'    );
     environment = getappdata(MainWin, 'environment');
-    
-    %% Perform basic checks    
 
-    % wetmass lower than drymass        
+    %% Perform basic checks
+
+    % wetmass lower than drymass
     if (settings.launch.launch_mass < settings.launch.payload_mass)
         uiwait(errordlg('Launch mass can not be lower than minimum drymass.',...
             'Incorrect parameter values', 'modal')); uiresume % <- prevents interaction with
@@ -26,31 +26,30 @@ function optimize_button(varargin)
 
     % no swingby-bodies selected
     swingby_bodies = get(handles.tab(sequence_tab).GAM.body, 'value');
-    if nnz([swingby_bodies{:}] - 1) < 1
+    if sum([swingby_bodies{:}] - 1) < 1
         errordlg({'You have not selected any swinbgby bodies.';
-            [environment.program_name, ' can only optimize MGA-problems.']},...
-            'No swinbgby bodies selected')
+                 [environment.program_name, ' can only optimize MGA-problems.']},...
+                 'No swinbgby bodies selected')
         return
     end
 
-    % convert launch window dates to MJD  
+    % convert launch window dates to MJD
     initial_year = get(handles.tab(sequence_tab).launch_window.year(1), 'string');
     initial_year = str2double(initial_year(1, 1:4));
-    launch_window_days_past_J2000 = date2days(...
-        settings.departure.launch_window.year + initial_year - 1,...
-        settings.departure.launch_window.month,...
-        settings.departure.launch_window.day,...
-        0, 0, 0);
+    launch_window_days_past_J2000 = date2days(settings.departure.launch_window.year + initial_year - 1,...
+                                              settings.departure.launch_window.month,...
+                                              settings.departure.launch_window.day,...
+                                              0, 0, 0);
 
     % launch window end-date preceeds start-date
     if diff(launch_window_days_past_J2000) < 0
         uiwait(warndlg({'Launch window end date preceeds start date;';
-                  'values will simple be swapped.'},...
-                  'Launch window dates reversed',...
-                  'modal')), uiresume; % <- blocks execution until OK is pressed
+                       'values will simple be swapped.'},...
+                       'Launch window dates reversed',...
+                       'modal')), uiresume; % <- blocks execution until OK is pressed
         % swap values
         temp = launch_window_days_past_J2000(1);
-        launch_window_days_past_J2000(1) = launch_window_days_past_J2000(2);            
+        launch_window_days_past_J2000(1) = launch_window_days_past_J2000(2);
         launch_window_days_past_J2000(2) = temp;
     end
 
@@ -62,34 +61,37 @@ function optimize_button(varargin)
 
     % First (global) or second (local) order optimization?
     if ~isempty(calculation.results.first_order.best.solution)
-        button_pressed = questdlg([...
-            'A result from a previous global optimization still resides in memory. ',...
-            'You may choose to use this result as the initial value for a high-accuracy local search, ',...
-            'or perform a new medium-accuracy global search with the current settings.'],...
-            'Choose optimiation type',...
-            'Perform new global search', 'Perform high-accuracy local search',...
-            'Perform high-accuracy local search');
+        button_pressed = questdlg(['A result from a previous global optimization still resides in memory. ',...
+                                  'You may choose to use this result as the initial value for a high-accuracy local search, ',...
+                                  'or perform a new medium-accuracy global search with the current settings.'],...
+                                  'Choose optimiation type',...
+                                  'Perform new global search', 'Perform high-accuracy local search',...
+                                  'Perform high-accuracy local search');
+
         switch lower(button_pressed)
+
             case 'perform new global search'
                 % clearing this variable will cause MGA to re-run the
                 % global search; this is the only criterion to enter
                 % that part of the function
                 calculation.results.first_order.best.solution = [];
                 setappdata(MainWin, 'calculation', calculation);
+
             case 'perform high-accuracy local search'
                 % do nothing; a non-empty [...best.solution] will cause
                 % MGA to use the best solution for the second-order
                 % search
+
             otherwise
-                return
+                return;
         end
-    end    
-    
+    end
+
     %% Start optimization
-    
+
     % disable all controls in the Main window
     % (cancel button is enabled AFTER the models have loaded)
-    [objects, states] = callbacks('disable_all'); 
+    [objects, states] = callbacks('disable_all');
 
     % Make 100% sure that the Cancel-button state is neutral
     set(handles.CancelButton, ...
@@ -98,66 +100,68 @@ function optimize_button(varargin)
 
     % set MainWindow flag to dirty (unsaved optimization)
     set(MainWin, 'UserData', 'dirty');
-    
+
     % run the optimization
-    try  
+    try
         % set the progress bar
         progress_bar(0, 'Initializing optimization...')
-        
+
         % BATCH-optimizations
         if settings.BATCH.check
 %??? TODO: implement BATCH optimizations
 
             % For BATCH optimizations, we first have to select the
             % different parameters according to each sequence. Also, the
-            % optimization results need to be saved differently. 
-            
+            % optimization results need to be saved differently.
+
             % loop through all sequences
             for ii = 1:settings.BATCH.num_combinations
+
                 % current sequence
                 seq = settings.BATCH.combinations{ii};
                 % select (default) times of flight
                 %??? TODO
-                
+
                 % use "best-of-X" optimizations
                 result = cell(setting.BATCH.best_of,1);
                 for jj = 1:setting.BATCH.best_of
-                    [result{jj}, successful] = MGA('batch'); end
-                
+                    [result{jj}, successful] = MGA('batch'); end %#ok<NASGU>
+
                 % find the best result & insert in calculation
                 %??? TODO
                 calculation.results.BATCH(ii) = best_result;
-                
+
             end % loop through all BATCH-sequences
-            
+
             % select the VERY best result
             %??? TODO
-                        
+
             % there's bound to be ONE successful
             successful = true;
-            
+
         % single optimziations
         else
             % Call the main function
-            do_again = true; 
-            while do_again, [calculation, successful, do_again] = MGA; end
-        end        
+            do_again = true;
+            while do_again
+                [calculation, successful, do_again] = MGA(); end
+        end
 
     % optimization might fail for some un-debugged reason
-    catch ME 
+    catch ME  %#ok<MUCTH>
         % no success
-        successful = false;            
+        successful = false;
         % form MATLAB-exception object
         mME = MException('MainWin:optimization_failed', ...
-            'Too little debugging?');
+                         'Too little debugging?');
         ME = addCause(ME, mME);
         % report error
         report = getReport(ME, 'extended', 'hyperlinks', 'off');
         % show warning
         uiwait(warndlg({'Something went wrong:'; ' ';  report}, 'Optimization failed!', ...
-            'modal')); uiresume % <- blocks execution until OK is pressed            
-    end  
-    
+            'modal')); uiresume % <- blocks execution until OK is pressed
+    end
+
     % reset all controls in the Main Window
     callbacks('reset_all', objects, states);
 
@@ -166,16 +170,16 @@ function optimize_button(varargin)
     % check if optimization was cancelled
     if cancel_button_pressed
         % first write results to appdata
-        setappdata(MainWin, 'calculation', calculation);            
+        setappdata(MainWin, 'calculation', calculation);
         % adjust progress bar and show warning
         progress_bar(0, 'Operation aborted')
-        uiwait(warndlg({'Optimization aborted!'; 
-            'Best result(s) found thus far will be used.'},... 
+        uiwait(warndlg({'Optimization aborted!';
+            'Best result(s) found thus far will be used.'},...
             'Optimization cancelled', ...
-            'modal')); uiresume % <- blocks execution until OK is pressed            
+            'modal')); uiresume % <- blocks execution until OK is pressed
         % but DO plot results
-        callbacks('showtab', output_tab); % switch to output tab            
-        generate_output('embedded');      % and display results    
+        callbacks('showtab', output_tab); % switch to output tab
+        generate_output('embedded');      % and display results
         % reset everything
         set(handles.CancelButton, 'UserData', 0);
         progress_bar('');
@@ -192,50 +196,52 @@ function optimize_button(varargin)
         setappdata(MainWin, 'calculation', calculation);
         % update the progress bar
         progress_bar(1, 'Optimization completed sucessfully.')
-        % finish off this optimization            
-        callbacks('showtab', output_tab); % switch to output window            
-        generate_output('embedded');      % and display results           
+        % finish off this optimization
+        callbacks('showtab', output_tab); % switch to output window
+        generate_output('embedded');      % and display results
         progress_bar('');    % and reset the progress bar
     end
-    
+
 end % optimize button
 
-%% MGA (Multiple Gravity Assist) - wrapper function 
+%% MGA (Multiple Gravity Assist) - wrapper function
 %
 % This function simply extracts all current settings from the Main
 % Window and uses these to construct the correct input for all the
 % external functions. Both the global and high-accuracy local
 % optimization are performed here.
 function varargout = MGA(batch_or_normal)
-    
+
     %% Initialize
-    
+
     % get handle to MainWin
     global MainWin
-    
+
     % extract data
     settings    = getappdata(MainWin, 'settings'   );
     model       = getappdata(MainWin, 'model'      );
     environment = getappdata(MainWin, 'environment');
     calculation = getappdata(MainWin, 'calculation');
     constants   = getappdata(MainWin, 'constants'  );
-    
+
     % Determine GAM-sequence (remove 'none')
     seq = settings.GAM.body - 1;
     first_none = find(seq == 0, 1);
-    if ~isempty(first_none), seq = seq(1:first_none-1); end
+    if ~isempty(first_none)
+        seq = seq(1:first_none-1); end
+
     % amount of swingby's to perform
     num_swingbys = numel(seq);
     % append departure and target bodies
     % (+1 because the central body can NOT be used as departure or
     % target body, so it is NOT included in the corresponding lists)
     seq = [settings.departure.body+1; seq; settings.target.body+1];
-   
+
     %% Load correct model and initialize ephemerides
 
     % Solar system model
     if settings.model(1)
-        % initialize the ephemerides model and wrapper function 
+        % initialize the ephemerides model and wrapper function
         model = initialize_ephemerides_generators(seq, model, 'Solar_System');
         ephemerides_generation([],[], model, settings);
         % load complete solar system model
@@ -245,27 +251,27 @@ function varargout = MGA(batch_or_normal)
         if any(strcmpi(settings.GAM.type(1:num_swingbys), 'aerograv'))
             model = planetary_atmospheres_model(seq, model);
         end
-        
+
     % Jovian model
     elseif settings.model(2)
-        % initialize the ephemerides model and wrapper function 
+        % initialize the ephemerides model and wrapper function
         model = initialize_ephemerides_generators(seq, model, 'Jovian_System');
         ephemerides_generation([],[], model, settings);
         % load complete Jovian system model
         model = Jovian_system_model(model);
         %??? to be continued later
-        
+
     % Julian model
     elseif settings.model(3)
-        % initialize the ephemerides model and wrapper function 
+        % initialize the ephemerides model and wrapper function
         model = initialize_ephemerides_generators(seq, model, 'Julian_System');
         ephemerides_generation([],[], model, settings);
         % load complete Jovian system model
         model = Julian_system_model(model);
         %??? to be continued later
-        
+
     end
-    
+
     % Minor planets
     if settings.model(4)
         % load the database
@@ -279,19 +285,19 @@ function varargout = MGA(batch_or_normal)
         % and apply mission-specific pruning rules
         model.MPs = user_MP_pruning(model.MPs, constants);
     end
-    
+
     % User database
     if settings.model(5)
         %??? TODO: to be implemented later
     end
-    
+
     % Make 100.4% sure the full model is saved
     setappdata(MainWin, 'model', model);
-    
+
     %% Parse current settings
-    
+
     % set standard options for the patched conics procedure
-    
+
     % WARNING: don't insert [model] directly -- without MP's it's no
     % problem, but when the MP's are included in the model (post-
     % processors/MP-costfunctions), more time is actually spent on
@@ -316,9 +322,9 @@ function varargout = MGA(batch_or_normal)
     % body. In that case, just define a value of [inf], [NaN] or 0. As
     % long as the position in the appropriate array is filled, the error
     % will not occur.
-    pc_params = struct(...  
+    pc_params = struct(...
         'scope'               , 'local',...
-        'ephemerides_generator', @(body, time) ephemerides_generation(body, time),...        
+        'ephemerides_generator', @(body, time) ephemerides_generation(body, time),...
         'M0'                   , settings.launch.launch_mass,...
         'Me'                   , settings.launch.payload_mass,...
         'VescSOI'              , model.VescSOI(seq(2:end-1)),...
@@ -336,56 +342,56 @@ function varargout = MGA(batch_or_normal)
         'initial_mass'         , settings.launch.launch_mass,...
         'max_GAM_DeltaV'       , settings.GAM.max_DV(1:num_swingbys),...
         'max_TOF'              , settings.GAM.constraints.max_tof);
-    
+
     % modify PC_PARAMS according to intended type of optimization
     if isempty(calculation.results.first_order.best.solution)
         %% First-order (Global optimization)
-        
+
         % determine if high or low thrust has been selected
         high_thrust = settings.propulsion.selected(1);
         % optimize Globally
         first_order = true;   second_order = false;
-        
+
         % single- or multi-objective?
         single_objective = nnz(...
-            [settings.optimize.objectives.max_mass 
+            [settings.optimize.objectives.max_mass
             settings.optimize.objectives.min_tof
             settings.optimize.objectives.other.use]) == 1;
         multi_objective = ~single_objective;
-        
-        % high-thrust        
+
+        % high-thrust
         if high_thrust
-            pc_params.solution_type = 'ballistic';            
+            pc_params.solution_type = 'ballistic';
             pc_params.Isp = settings.propulsion.high_thrust.Isp;
-            
+
         % low-thrust
         else
             % ExpoSins
             if settings.optimize.global.low_thrust_approximation(1)
                 pc_params.solution_type = 'ExpoSins';
-                pc_params.Isp = settings.propulsion.ion_engine.Isp;                
+                pc_params.Isp = settings.propulsion.ion_engine.Isp;
             % equinoctial elements
             elseif settings.optimize.global.low_thrust_approximation(2)
                 pc_params.solution_type = 'Equinoctial elements';
-                pc_params.Isp = settings.propulsion.ion_engine.Isp;                
+                pc_params.Isp = settings.propulsion.ion_engine.Isp;
             end
-            
+
             %??? Solar sail lambert targeter?
-            
+
         end
-        
-    % Second-order (Local optimization)  
+
+    % Second-order (Local optimization)
     else
         %% Second-order (Local optimization)
-        
+
         % determine if high or low thrust has been selected
         high_thrust = settings.propulsion.selected(1);
         % optimize Locally
         first_order = false;   second_order = true;
-        
-        % high-thrust        
+
+        % high-thrust
         if high_thrust
-            pc_params.solution_type = 'ballistic-integration';            
+            pc_params.solution_type = 'ballistic-integration';
             pc_params.Isp = settings.propulsion.high_thrust.Isp;
             % first make sure the ENTIRE model is loaded
             models = {'Solar_System'; 'Jovian system'; 'Julian system'};
@@ -397,31 +403,31 @@ function varargout = MGA(batch_or_normal)
                 @(odefun,tspan,y0,options)       ode45(odefun, tspan, y0, options);
                 @(odefun,tspan,y0,dy0,options)   rkn86(odefun, tspan, y0, dy0, options);
                 @(odefun,tspan,y0,dy0,options) rkn1210(odefun, tspan, y0, dy0, options)};
-            integrator = integrators{logical(settings.optimize.local.integrator)};            
-            % pass all data also to NBody()            
+            integrator = integrators{logical(settings.optimize.local.integrator)};
+            % pass all data also to NBody()
             int_options = struct(...
                 'GMs'        , model.GMs,...  % std. grav. parameters of all perturbers
                 'integrator' , integrator,... % type of integrator
                 'perturbers' , 1:model.standard_bodies,...       % ALL model-bodies are perturbers
                 'ephemerides', pc_params.ephemerides_generator); % copy ephemerides generator
-            % and set integrator    
+            % and set integrator
             pc_params.integrator = @(y0, tspan) NBody_Battin(y0, tspan, int_options);
-            
+
         % low-thrust
         else
             % Sims & Flanagan
-            
-            % Collocation            
+
+            % Collocation
         end
-        
+
     end
-    
+
     %% First-order optimization
-    
+
     if first_order
-                
+
         %% optimization & post-processing
-                
+
         % initialize
         progress_bar(0, 'Optimizing...')                 % update progress bar
         pause(0.25), start_time = tic;                   % start timer
@@ -431,43 +437,43 @@ function varargout = MGA(batch_or_normal)
             settings.optimize.objectives.min_tof         % minimum time of flight objective
             settings.optimize.objectives.other.use];     % other objectives
         objectives.other = settings.optimize.objectives.other.function_handle;
-        
+
         % objective function for global optimizer
         objective_function = @(X, params) PC_objective_function(...
             objectives, patched_conics(seq, X, params));
-        
+
         % call single-objective optimizer
         if single_objective
             [solution, fval, exitflag, output, LB,UB] = ...
-                optimizer(objective_function, pc_params, seq);            
+                optimizer(objective_function, pc_params, seq);
             % assign dummies for the Pareto fronts
             Paretos = [];
-            
+
         % call multi-objective optimizer
         elseif multi_objective
             [solution, fval, Paretos, Paretos_fvals, exitflag, output, LB,UB] =...
                 optimizer(objective_function, pc_params, seq);
         end
-        
+
         % call post-processor
         postprocessor_data = [];
         if settings.postprocessing.check && ~cancel_button_pressed % only when requested
             progress_bar(0, 'Starting post-processor...');
             % run selected post-processor
-            index = settings.postprocessing.post_processor;            
+            index = settings.postprocessing.post_processor;
             [postprocessor_data, solution, fval] = ...
                 environment.plugin_info.postprocessors(index).function_handle(...
                 @(X) objective_function(X, pc_params), solution, fval, LB, UB);
         end
-                
+
         %% process results
-                
+
         % stop the timer
         elapsed_time = toc(start_time);
-        
+
         % update progress bar
         progress_bar(1, 'Optimization terminated.')
-        
+
         % evaluate all solutions one more time to obtain all
         % data associated with the solution
         if ~isempty(Paretos) % multi-objective
@@ -479,16 +485,16 @@ function varargout = MGA(batch_or_normal)
             % gather additional data (if any) from third objective
             if objectives.which(3)
                 third_objective_data = cell(size(results));
-                for ii = 1:numel(results)  
+                for ii = 1:numel(results)
                     [ig,ig, third_objective_data{ii}] = ...
-                        feval(objectives.other, MainWin, results{ii});%#ok                    
+                        feval(objectives.other, MainWin, results{ii});%#ok
                 end
             end
             % evaluate the "best" solution among the Paretos
             best_result = find(all( bsxfun(@eq, fval, Paretos_fvals), 2));
             % insert everything in calculation results
             calculation.results.first_order.best.solution             = results{best_result};
-            calculation.results.first_order.best.function_value       = fval;            
+            calculation.results.first_order.best.function_value       = fval;
             calculation.results.first_order.Paretos.solutions         = results;
             calculation.results.first_order.Paretos.function_values   = Paretos_fvals;
             if objectives.which(3)
@@ -501,10 +507,10 @@ function varargout = MGA(batch_or_normal)
             calculation.results.first_order.Paretos.types = settings.optimize.objectives;
             % check feasibility
             violated = cellfun( @(x) x.is_violated, results);
-            feasible = ~all(violated);            
+            feasible = ~all(violated);
             calculation.results.first_order.Paretos.infeasible = nnz( violated);
             calculation.results.first_order.Paretos.feasible   = nnz(~violated);
-            
+
         else % single-objective
             % get all the data
             best_result = patched_conics(seq, solution, pc_params);
@@ -514,16 +520,16 @@ function varargout = MGA(batch_or_normal)
             calculation.results.first_order.Paretos             = [];
             % check feasibility of the solution
             feasible = ~best_result.is_violated;
-            
+
         end
-        
+
         % also save the results from the post-processor
         calculation.results.first_order.best.postprocessor_data = postprocessor_data;
-        
+
         % get the statistics
         [ephemerides, lambert, lambert_failed, cbf, cbf_failed, rp_failed] = ...
             PC_objective_function(objectives, solution, 'get_stats');
-        
+
         % insert these data into first-order result
         calculation.results.first_order.elapsed_time     = elapsed_time;
         calculation.results.first_order.lambert_failed   = lambert_failed;
@@ -534,25 +540,25 @@ function varargout = MGA(batch_or_normal)
         calculation.results.first_order.ephemerides      = ephemerides;
         calculation.results.first_order.algorithm.output = output;
         calculation.results.first_order.algorithm.flag   = exitflag;
-                
+
         % also save current settings -- these are to be used in the
         % second-order optimziation. Saving the settings here allows the
         % user to modify some settings, while still being able to run the
         % local optimization afterwards and plot the correct results
         calculation.results.first_order.settings = settings;
-        
-        % also save the objective function and original bounds -- this is 
-        % needed for post processors used in combination with multi-objective 
+
+        % also save the objective function and original bounds -- this is
+        % needed for post processors used in combination with multi-objective
         % optimizations
         calculation.results.first_order.objective_function = objective_function;
         calculation.results.first_order.LB = LB;
         calculation.results.first_order.UB = UB;
-        
+
         % output in case of a normal exit
         varargout{1} = calculation;  % output results
         varargout{2} = true;         % sucessful?
         varargout{3} = false;        % optimize again?
-        
+
         % if this is a non-batch optimization
         if (nargin > 0) && strcmpi(batch_or_normal, 'normal')
             % Maximum function evaluations or iterations has been reached
@@ -604,52 +610,52 @@ function varargout = MGA(batch_or_normal)
             % normal exit
             else
                 progress_bar(1, 'All done.'), pause(0.25)
-            end    
+            end
         end % if batch or normal
-        
-        % We're done! 
+
+        % We're done!
         % (although not required, give a return  here for clarity)
         return;
-        
-    end % first order    
-    
+
+    end % first order
+
     %% Second-order optimization
-    
+
     if second_order
-        
+
          %% optimization & post-processing
-        
+
          % initialize
         progress_bar(0, 'Optimizing...')                 % update progress bar
         pause(0.25), start_time = tic;                   % start timer
         PC_objective_function([],[], 'reset_stats');     % reset persistent variables
-        objectives.which = [1 0 0];                      % use only maximum mass objective            
-                
+        objectives.which = [1 0 0];                      % use only maximum mass objective
+
         % redefine objective function
         objective_function = @(X, params) PC_objective_function(...
             objectives, patched_conics(seq, X, params));
-        
+
         % call optimizer
         [solution, fval, exitflag, output] = ...
             optimizer(objective_function, pc_params, seq);
-                  
+
         % call post-processor
         postprocessor_data = [];
         if settings.postprocessing.check && ~cancel_button_pressed % only when requested
             progress_bar(0, 'Starting post-processor...');
             % ??? HERE
             [postprocessor_data, solution, fval] = post_processor(...
-                @(X) objective_function(X, pc_params), solution, fval, LB, UB);            
+                @(X) objective_function(X, pc_params), solution, fval, LB, UB);
         end
-        
+
         %% process output
-        
+
         % stop the timer
         elapsed_time = toc(start_time);
-        
+
         % update progress bar
         progress_bar(1, 'Optimization terminated.')
-        
+
         % evaluate solution one more time to obtain all data
         best_result = patched_conics(seq, solution, pc_params);
         % insert in calculation results
@@ -657,14 +663,14 @@ function varargout = MGA(batch_or_normal)
         calculation.results.second_order.best.function_value = fval;
         % check feasibility of the solution
         feasible = ~best_result.is_violated;
-        
+
         % also save the results from the post-processor
         calculation.results.second_order.best.postprocessor_data = postprocessor_data;
-        
+
         % get the statistics
         [ephemerides, lambert, lambert_failed, ~, ~, rp_failed] = ...
             PC_objective_function(objectives, solution, 'get_stats');
-                
+
         % insert these data into first-order result
         calculation.results.second_order.elapsed_time     = elapsed_time;
         calculation.results.second_order.lambert_failed   = lambert_failed;
@@ -673,20 +679,20 @@ function varargout = MGA(batch_or_normal)
         calculation.results.second_order.ephemerides      = ephemerides;
         calculation.results.second_order.algorithm.output = output;
         calculation.results.second_order.algorithm.flag   = exitflag;
-        
+
         % also save the function handle to the solver, so we don't have to
-        % re-deinfe it in GENERATE_OUTPUT()        
+        % re-deinfe it in GENERATE_OUTPUT()
         calculation.results.second_order.solver = objective_function;
-                
+
         % output in case of a normal exit
         varargout{1} = calculation;  % output results
         varargout{2} = true;         % sucessful?
         varargout{3} = false;        % optimize again?
-                
+
         % Maximum function evaluations or iterations has been reached
         if (exitflag == -1 || exitflag == -2)
             %??? TODO
-            
+
         % The sequence was REALLY weird - all solutions turned out to
         % be INF or NAN
         elseif (exitflag == -3) && ~cancel_button_pressed
@@ -707,7 +713,7 @@ function varargout = MGA(batch_or_normal)
                 varargout{3} = false;
                 return;
             end
-            
+
             % no feasible results
         elseif ~feasible && ~cancel_button_pressed
             % ask whether to optimize again
@@ -727,21 +733,21 @@ function varargout = MGA(batch_or_normal)
                     varargout{2} = false;   % sucessful?
                     varargout{3} = false;   % optimize again?
             end
-            
+
             % normal exit
         else
             progress_bar(1, 'All done.'), pause(0.25)
         end
-                
-        
+
+
     end % second order
-    
+
     % We're done! Yaaay!
-    
+
 end % MGA
 
 %% MGA -- helper functions
-    
+
 % objective/constraint wrapper function for first-order optimization
 function varargout = PC_objective_function(objectives, result, stats)
 
@@ -760,7 +766,7 @@ function varargout = PC_objective_function(objectives, result, stats)
         if ((nargin == 3) && strcmpi(stats, 'reset_stats')), return, end
     end
 
-    % return the statistics 
+    % return the statistics
     if (nargin == 3) && strcmpi(stats, 'get_stats')
         varargout{1} =  EPHEMERIDES;     varargout{4} =  CENTRAL_BODY;
         varargout{2} =  LAMBERT;         varargout{5} =  CENTRAL_BODY_FAILED;
@@ -776,9 +782,9 @@ function varargout = PC_objective_function(objectives, result, stats)
     CENTRAL_BODY   = CENTRAL_BODY + result.central_body.success + result.central_body.impossible;
     CENTRAL_BODY_FAILED = CENTRAL_BODY_FAILED + result.central_body.failure;
 
-    
+
     %% minimum Delta_V / maximum drymass
-    
+
     if objectives.which(1)
         % cost is the negative endmass
         cost = -result.endmass;
@@ -800,9 +806,9 @@ function varargout = PC_objective_function(objectives, result, stats)
         costs       = [costs, cost];
         constraints = [constraints; constraint];
     end
-    
+
     %% minimum TOF
-    
+
     if objectives.which(2)
         % total travel time
         % NOTE: exclude the initial time
@@ -813,17 +819,17 @@ function varargout = PC_objective_function(objectives, result, stats)
         costs       = [costs, cost];
         constraints = [constraints; constraint];
     end
-    
+
     %% custom
-    
-    if objectives.which(3)        
-        % calculate the cost & constraints user-defined function 
+
+    if objectives.which(3)
+        % calculate the cost & constraints user-defined function
         [cost, constraint] = feval(objectives.other, MainWin, result);
         % append costs & constraints
         costs       = [costs, cost];
         constraints = [constraints; constraint];
     end
-    
+
     %  output
     varargout{1} = costs;       % objective function value
     varargout{2} = constraints; % all constraints are [c], inequality constraints
@@ -834,10 +840,10 @@ end % patched conics objective/constraint function
 
 % small wrapper function for ephemerides generators
 function statevec = ephemerides_generation(body, time, model, settings)
-    
+
     % initialize persistents
     persistent STATES SETTINGS STATIC
-    
+
     % initialize them on first call
     if (nargin == 4)
          STATES   = model.states;
@@ -845,62 +851,62 @@ function statevec = ephemerides_generation(body, time, model, settings)
          STATIC   = model.static;
          return
     end
-        
+
     % initialize
-    statevec = zeros(1, 6);        
+    statevec = zeros(1, 6);
     % first check static bodies
-    if STATIC{1}(body), statevec = STATIC{2}{body}; return, end 
-    
+    if STATIC{1}(body), statevec = STATIC{2}{body}; return, end
+
     % JPL/DE405
     if SETTINGS.optimize.ephemerides(1)
-        statevec = JPL_DE405_ephemerides(time, STATES(body, :));            
-        
+        statevec = JPL_DE405_ephemerides(time, STATES(body, :));
+
     % ??? TODO
     % Kepler (direct)
     elseif SETTINGS.optimize.ephemerides(2)
-        statevec = two_body_ephemerides(body, time, 0, model,constants);      
+        statevec = two_body_ephemerides(body, time, 0, model,constants);
         % ??? TODO
     % quintic best-fit
     elseif SETTINGS.optimize.ephemerides(3)
-        statevec = quintic_best_fit(time, body, model,constants);            
+        statevec = quintic_best_fit(time, body, model,constants);
         % ??? TODO
-    end        
+    end
 end % ephemerides generation
 
-%% MGA -- main optimization 
+%% MGA -- main optimization
 
 % global/local optimizer and post-processor
 function varargout = optimizer(obj, obj_params, seq)
-    
+
     %% Initialize
-    
+
     % get MainWin handle
-    global MainWin 
-    
+    global MainWin
+
     % get relevant data
     settings    = getappdata(MainWin, 'settings'   );
-    calculation = getappdata(MainWin, 'calculation');    
-    
+    calculation = getappdata(MainWin, 'calculation');
+
     % amount of swingby's to perform
-    num_swingbys = numel(seq)-2;    
+    num_swingbys = numel(seq)-2;
     % total amount of targets visited
     num_targets = num_swingbys + 1;
-    
-    % handy definitions   
+
+    % handy definitions
     high_thrust  = settings.propulsion.selected(1);
     first_order  = isempty(calculation.results.first_order.best.solution);
     second_order = ~first_order;
     single_objective = nnz(...
         [settings.optimize.objectives.max_mass
-        settings.optimize.objectives.min_tof         
+        settings.optimize.objectives.min_tof
         settings.optimize.objectives.other.use]) == 1;
     multi_objective  = ~single_objective;
-            
+
     %% Global optimization
     if first_order
 
         %% set bounds
-        
+
         % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         % FORMAT (Without DSMs):
         %
@@ -925,14 +931,14 @@ function varargout = optimizer(obj, obj_params, seq)
         % include times of flight, as selected by the user
         TOF_LB_settings = zeros(num_swingbys+1,1);
         TOF_UB_settings = TOF_LB_settings;
-        for ii = 1:num_swingbys              
+        for ii = 1:num_swingbys
             TOF_LB_settings(ii) = settings.GAM.TOF_LB(settings.GAM.body(ii),ii); end
         for ii = 1:num_swingbys
-            TOF_UB_settings(ii) = settings.GAM.TOF_UB(settings.GAM.body(ii),ii); end        
+            TOF_UB_settings(ii) = settings.GAM.TOF_UB(settings.GAM.body(ii),ii); end
         TOF_LB_settings(end) = settings.target.TOF_LB(settings.target.body);
         TOF_UB_settings(end) = settings.target.TOF_UB(settings.target.body);
         LB(2:5:end) = TOF_LB_settings;      UB(2:5:end) = TOF_UB_settings;
-        
+
         % allow long way solutions
         % +1 = short way   -1 = long way
         % setting: 1: short  2: long  3: optimize
@@ -944,7 +950,7 @@ function varargout = optimizer(obj, obj_params, seq)
         ub_longway(shortlong_settings == 2) = -1;
         lb_longway(shortlong_settings == 3) = -1; % optimize
         % but NOT the upper bound in that case ^_^
-        LB(3:5:end) = lb_longway;    UB(3:5:end) = ub_longway;            
+        LB(3:5:end) = lb_longway;    UB(3:5:end) = ub_longway;
 
         % k2-limits
         LB(4:5:end) = 0.01;  UB(4:5:end) = 1; % <- is this OK? I couldn't think of any other limit...
@@ -955,7 +961,7 @@ function varargout = optimizer(obj, obj_params, seq)
         revolutions = revolutions(1:num_targets);
         revolutions_ub = revolutions;  revolutions_lb = revolutions;
         revolutions_ub(revolutions == 3) = 3; % optimize
-        
+
         revolutions_lb(revolutions == 3) = 0;
         LB(5:5:end) = revolutions_lb;
         UB(5:5:end) = revolutions_ub;
@@ -965,28 +971,28 @@ function varargout = optimizer(obj, obj_params, seq)
         else
             LB(6:5:end) = 0;    UB(6:5:end) = 0;
         end
-        
+
         %% optimize globally
-        
+
         % adjust scope
         obj_params.scope = 'global';
-                                   
+
         % population size:
-        % 100 individuals per independent variable for high-thrust propulsion, 
+        % 100 individuals per independent variable for high-thrust propulsion,
         % 75 for low-thrust propulsions because of the higher computational
         % demands for the low-thrust Lambert targeters
         popsize = (100 - ~high_thrust*25) * numel(LB(LB~=UB));
-       
+
         % Nothing might have to be done (rare cases of course)
         if all(LB == UB)
             % progress bar
             progress_bar(1, 'Equal bounds - nothing to do.');
-            % assign all output    
+            % assign all output
             fval         = obj(LB, obj_params);   varargout{nargout-0} = UB;
             varargout{1} = LB;                    varargout{nargout-1} = LB;
-            varargout{2} = fval;    
-            if multi_objective                
-                varargout{3} = repmat({LB}, [1, 1, popsize]);              
+            varargout{2} = fval;
+            if multi_objective
+                varargout{3} = repmat({LB}, [1, 1, popsize]);
                 varargout{4} = repmat(fval, popsize, 1);
                 varargout{5} = 1;
                 varargout{6}.message = 'Lower and upper bounds were equal - nothing to do.';
@@ -997,11 +1003,11 @@ function varargout = optimizer(obj, obj_params, seq)
             % and return
             return
         end
-                        
+
         % use GODLIKE optimizer
-        if (multi_objective || settings.optimize.global.optimizer(1))            
+        if (multi_objective || settings.optimize.global.optimizer(1))
             % get current options
-            options = settings.optimize.global.optimizer_settings{1};              
+            options = settings.optimize.global.optimizer_settings{1};
             % ??? TODO: Better option here
             if isempty(options.NumStreams)
                 options.NumStreams = 2; end
@@ -1011,10 +1017,10 @@ function varargout = optimizer(obj, obj_params, seq)
             % Don't use PSO for multi-objective optimizations; the current
             % implementation doesn't work so well...
             if multi_objective
-                options.algorithms = {'GA';'DE'}; end            
+                options.algorithms = {'GA';'DE'}; end
             % implement "automatic" popsize
             if isempty(options.popsize)
-                options.popsize = popsize; end  
+                options.popsize = popsize; end
             % max. number of function evaluations (needed in the output
             % function)
             maxFunEvals = options.MaxFunEvals;
@@ -1025,10 +1031,10 @@ function varargout = optimizer(obj, obj_params, seq)
             options.QuitWhenAchieved =  true;
             options.OutputFcn = @outputFcn;
             options.ConstraintsInObjectiveFunction = 2;
-            % and optimize  
+            % and optimize
             [solution, funval, varargout{3:nargout-2}] = ...
                 GODLIKE(@(X)obj(X, obj_params), LB, UB, [], options);
-            
+
         % use MINIMIZE() (FMINSEARCH = NELDERMEAD)
         elseif settings.optimize.global.optimizer(2)
             % get current options
@@ -1041,12 +1047,12 @@ function varargout = optimizer(obj, obj_params, seq)
             maxFunEvals = options.MaxFunEvals;
             % insert non-settable options
             options.OutputFcn = @outputFcn;
-            options.ConstraintsInObjectiveFunction = 2;   
+            options.ConstraintsInObjectiveFunction = 2;
             options.Algorithm = 'fminsearch';
             % and optimize
             [solution, funval, varargout{3:nargout-2}] = ...
-                minimize(@(X)obj(X, obj_params), [], [],[], [],[], LB,UB, [], options); 
-            
+                minimize(@(X)obj(X, obj_params), [], [],[], [],[], LB,UB, [], options);
+
         % use MINIMIZE() (FMINLBFGS)
         elseif settings.optimize.global.optimizer(3)
             % get current options
@@ -1064,23 +1070,23 @@ function varargout = optimizer(obj, obj_params, seq)
             % and optimize
             [solution, funval, varargout{3:nargout-2}] = ...
                 minimize(@(X)obj(X, obj_params), [], [],[], [],[], LB,UB, [], options);
-            
+
         end
-             
+
         %% optimize locally (after convergence of the global routine)
-                
+
         % only run local optimizer for single-objective optimizations,
         % and when the cancel button's not been pressed
         if single_objective && ~cancel_button_pressed
             % change scope
-            obj_params.scope = 'local';            
+            obj_params.scope = 'local';
             % Check to see if we still have function evaluations left
             maxFunEvals = max(maxFunEvals - varargout{4}.funcCount, 2500);
             % if not, exit IF. otherwise, optimize locally
-            if (maxFunEvals > 0)            
+            if (maxFunEvals > 0)
                 % adjust progress bar
                 progress_bar(0.9, 'Running local optimizer...')
-                % set options                
+                % set options
                 options = optimset(...
                     'display'    , 'off',...            % make sure it's OFF
                     'algorithm'  , 'active-set',...     % faster, but less robust (active-set gives NaN/inf often)
@@ -1121,97 +1127,93 @@ function varargout = optimizer(obj, obj_params, seq)
                         solution, [],[], [],[], LB,UB, [], options);
                 end
             end
-            
+
         % otherwise, just say the optimization's finished
         else
-            progress_bar(1, 'Optimization completed.')            
+            progress_bar(1, 'Optimization completed.')
         end
-        
+
         % assign output arguments
         varargout{1} = solution;
         varargout{2} = funval;
         varargout{nargout-1} = LB; % used in post-processing
         varargout{nargout-0} = UB; % used in post-processing
-             
+
     end % if first order
 
     %% High-accuracy local optimization
-    
+
     if second_order
 % TODO : not at all well tested ...
-        
+
         %% initialize
-        
+
         % copy ORIGINAL settings
-        settings = calculation.results.first_order.settings;        
-        
+        settings = calculation.results.first_order.settings;
+
         % redefine high-thrust etc.
         high_thrust = settings.propulsion.selected(1);
-        
+
         % change scope
-        obj_params.scope = 'local';        
-        
+        obj_params.scope = 'local';
+
         % parameters for the optimization
 maxFunEvals = 1e4;
-        
-        
+
+
         %% define second-order initial estimate and new bounds
-        
+
         % best result from first-order optimziation
-        best_result = calculation.results.first_order.best.solution;    
+        best_result = calculation.results.first_order.best.solution;
         % initialize initial estimate
         initial_estimate = [best_result.t0; best_result.tfs(:)];
-        
+
 initial_estimate(2) = 8;
 initial_estimate(3) = initial_estimate(3) - 8;
-        
+
         % high-thrust
-        if high_thrust             
+        if high_thrust
             % insert all departure velocity vectors
             V_init = best_result.V_departure.';
 %             initial_estimate = [initial_estimate; V_init(:)];
 
 initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
 
-                        
+
         % low-thrust
-        else            
+        else
             % Sims & Flanagan
             if settings.optimize.local.method(1)
                 % ??? TODO
             % collocation
             elseif settings.optimize.local.method(2)
                 % ??? TODO
-            end            
-        end        
-        
+            end
+        end
+
         % extract original upper and lower bounds
         LB_1st = calculation.results.first_order.LB;
         UB_1st = calculation.results.first_order.UB;
-                
+
         % set new bounds
-        LB = -inf(size(initial_estimate));    UB = +inf(size(initial_estimate)); % no real limits        
-        LB(1) = LB_1st(1);                    UB(1) = UB_1st(1);                 % launch date        
-        tofLB = LB_1st(2:5:end);              tofUB = UB_1st(2:5:end);             
-        LB((0:length(tofUB)-1)+2) = tofLB;    UB((0:length(tofUB)-1)+2) = tofUB; % times of flight        
-        
-LB(2) = 0;
-UB(2) = 50;
-                
+        LB = -inf(size(initial_estimate));    UB = +inf(size(initial_estimate)); % no real limits
+        LB(1) = LB_1st(1);                    UB(1) = UB_1st(1);                 % launch date
+        tofLB = LB_1st(2:5:end);              tofUB = UB_1st(2:5:end);
+        LB((0:length(tofUB)-1)+2) = tofLB;    UB((0:length(tofUB)-1)+2) = tofUB; % times of flight
+
         %% second-order optimization
-        
+
         % adjust progress bar
         progress_bar(0, 'Running local optimizer...')
-        
+
         % set options
-        options = optimset(...
-            'display'    , 'off',...            % make sure it's OFF
-            'algorithm'  , 'active-set',...     % faster, but less robust (active-set gives NaN/inf often)
-            'FunValCheck', 'on',...             % so, check this!
-            'MaxFunEvals', maxFunEvals,...      % or [maxFunEvals] function evaluations
-            'OutputFcn'  , @outputFcn);         % show intermediate masses in progress bar
+        options = optimset('display'    , 'off',...         % make sure it's OFF
+                           'algorithm'  , 'active-set',...  % faster, but less robust (active-set gives NaN/inf often)
+                           'FunValCheck', 'on',...          % so, check this!
+                           'MaxFunEvals', maxFunEvals,...   % or [maxFunEvals] function evaluations
+                           'OutputFcn'  , @outputFcn);      % show intermediate masses in progress bar
         options.ConstraintsInObjectiveFunction = 2;
-        
+
         % FMINCON
         if settings.optimize.local.optimizer(1)
             % active-set gives NaN/inf quite often
@@ -1244,31 +1246,31 @@ UB(2) = 50;
             [solution, funval] = minimize(@(X)obj(X, obj_params), ...
                 initial_estimate, [],[], [],[], LB,UB, [], options);
         end
-        
+
         % assign output arguments
         varargout{1} = solution;
         varargout{2} = funval;
         varargout{nargout-1} = LB; % used in post-processing
-        varargout{nargout-0} = UB; % used in post-processing        
-        
+        varargout{nargout-0} = UB; % used in post-processing
+
     end % if first/second order
-    
-    %% Helper functions 
-    
+
+    %% Helper functions
+
     % small wrapper function to get the nonlinear constraint values into
     % the FMINCON() optimization routine
     %
     % All the other optimizers I wrote understand how to get constraint
     % function values from within objective functions, thus evaluating the
     % objective function only *once* to get both objective function values
-    % and constraint function values. But FMINCON() can't do that, so it 
-    % needs to evaluate PATHCED_CONICS() *twice* to get the constraint 
-    % values. 
+    % and constraint function values. But FMINCON() can't do that, so it
+    % needs to evaluate PATHCED_CONICS() *twice* to get the constraint
+    % values.
     %
     % This is indeed an obvious imperfection with regard to performance,
     % but we don't really care about that here -- FMINCON() on
-    % PATHCED_CONICS() is only used for either a few iterations after the 
-    % global routine, or in one of the post-processors, in which case the 
+    % PATHCED_CONICS() is only used for either a few iterations after the
+    % global routine, or in one of the post-processors, in which case the
     % largest computational burder (by far) is in the objective function,
     % and definitely not here.
     function [c, ceq] = constraints_wrapper(X,varargin)
@@ -1286,27 +1288,27 @@ UB(2) = 50;
         % IMMEDIATELY, e.g., don't display values from the last iteration
         stop = cancel_button_pressed;  if stop, return, end
 
-        % First correct the sleepy idiot who the output function sections 
+        % First correct the sleepy idiot who the output function sections
         % of FMINSEARCH() and FMINCON()
         if isfield(optimValues, 'funccount')
             % funCCCCCCCount (CAPITAL!)
             optimValues.funcCount = optimValues.funccount;
             optimValues = rmfield(optimValues, 'funccount');
         end
-        
+
         % initialize
         show_progress = false;
-        
+
         % global optimizers
         if first_order
 
             % discriminate between the different optimizers
-            if any(strcmpi(state, {'iter';'interrupt'}))              
+            if any(strcmpi(state, {'iter';'interrupt'}))
 
                 % Constrained FMINSEARCH(), FMINCON() and Constrained FMINLBFGS()
                 if (strcmpi(obj_params.scope, 'local') && rand < 1/5) ||...
                    (strcmpi(obj_params.scope, 'global') && ...
-                   ~strcmpi(state, 'interrupt') && isfield(optimValues, 'procedure')) 
+                   ~strcmpi(state, 'interrupt') && isfield(optimValues, 'procedure'))
                     % get display values
                     endmass = abs(optimValues.fval);
                     if isfield(optimValues, 'constrviolation')
@@ -1336,7 +1338,7 @@ UB(2) = 50;
                         stop = true;
                     end
                 end
-                
+
                 % GODLIKE; single-objective optimizations
                 if isfield(optimValues, 'type') && ...
                    strcmpi(optimValues.type, 'single-objective')
@@ -1347,11 +1349,11 @@ UB(2) = 50;
                     % update progress
                     if (violation == 0)
                         progress = max([optimValues.funcCount/maxFunEvals *0.9
-                                        endmass/settings.launch.launch_mass *0.9]);     
+                                        endmass/settings.launch.launch_mass *0.9]);
                     elseif ~isfinite(endmass)
                         endmass  = 0;
                         progress = 0;
-                    elseif (violation > 0) 
+                    elseif (violation > 0)
                         %pen_endmass = endmass*(1 - (exp(violation) - 1));
                         progress = max([...
                             optimValues.funcCount/maxFunEvals *0.9
@@ -1390,12 +1392,12 @@ UB(2) = 50;
 
             end % if (iter)
         end % first order (global) output
-        
+
         % local optimizations
         if second_order
             %??? TODO
-        end % second order (local) output        
+        end % second order (local) output
 
     end % outputFcn
-    
+
 end % optimizer & post-processor
