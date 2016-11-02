@@ -2,13 +2,12 @@ function sec = date2sec(year, month, day, hour, minute, second)
 % days = DATE2SEC(year, month, day, hour, minute, second) converts the
 % given calendar date into the amount of seconds since the J2000.0 epoch.
 
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 15/Jun/2009 (Rody)
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
     % parse input
     zero = zeros(size(year));

@@ -1,18 +1,17 @@
 % velocity, thrust, position and Delta-V of an ExpoSin, for an
 % equally-spaced amount of points [steps], point-to-point.
 %
-% ( Serves as an initial estimate for SIMSFLANAGAN() ) 
+% ( Serves as an initial estimate for SIMSFLANAGAN() )
 function [burnprog, thetas, ts] = ...
         exposin2initial_SimsFlanagan(exposin, r1vec, r2vec, dt, steps)
 % EXPOSIN2INITIAL_DELTAV
 
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 24/Mar/2009.
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
     % get global
     global muS

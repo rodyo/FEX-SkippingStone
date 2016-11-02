@@ -11,8 +11,9 @@ function model = minor_planets_parameters(model, environment, constants, reload)
 % .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
 %
+
+% TODO; why not merge this with minor_planets_model()?
 
     % Last Edited: 22/Sep/2009
     

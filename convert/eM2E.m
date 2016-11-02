@@ -1,32 +1,31 @@
 % EM2E        Convert eccentricity and mean anomaly to eccentric anomaly
 %
-% [E] = EM2E(e, M) converts the eccentricity [e] and mean anomaly [M] to 
-% the corresponding eccentric anomaly [E]. The mean anomaly [M] should be 
-% given in radians. This conversion is essentially a black-box function 
-% that solves Kepler's equation for any arbitrary conic section; it works 
+% [E] = EM2E(e, M) converts the eccentricity [e] and mean anomaly [M] to
+% the corresponding eccentric anomaly [E]. The mean anomaly [M] should be
+% given in radians. This conversion is essentially a black-box function
+% that solves Kepler's equation for any arbitrary conic section; it works
 % correctly for all types of conic sections, and handles scalar/vector/
 % matrix input intuitively. Note that the eccentric anomaly has no
-% definition in the parabolic case; for parabolic cases, [E] = [theta] 
-% (the true anomaly) is returned. 
+% definition in the parabolic case; for parabolic cases, [E] = [theta]
+% (the true anomaly) is returned.
 %
-% EM2E(e, M, tol) (with a third argument) uses a maximum error-tolerance 
+% EM2E(e, M, tol) (with a third argument) uses a maximum error-tolerance
 % given by [tol]. The default is 1e-12.
 %
-% Algorithm: To calculate [theta] from [M], EM2E uses a carefully selected 
-% first approximate root of Kepler's equation, followed by a Newton-Raphson 
-% iteration scheme if the first estimate is not within the limits set by 
-% [tol]. See [Seppo Mikkola, "A cubic approximation for Kepler's equation", 
+% Algorithm: To calculate [theta] from [M], EM2E uses a carefully selected
+% first approximate root of Kepler's equation, followed by a Newton-Raphson
+% iteration scheme if the first estimate is not within the limits set by
+% [tol]. See [Seppo Mikkola, "A cubic approximation for Kepler's equation",
 % 1987] for more details.
 %
 % See also eM2theta, eE2theta, eE2M.
 
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 11/Nov/2009
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
 function E = eM2E(e, M, tol)
 
@@ -42,13 +41,13 @@ function E = eM2E(e, M, tol)
 
     % initialize
     sze = size(e);  % save original size of [e]
-    M   = M(:);     % convert to colum vector       
-    e   = e(:);     % convert to colum vector              
-    E   = zeros(size(e)); % initialize output argument   
-    ell = (e < 1);  % elliptic orbits     
+    M   = M(:);     % convert to colum vector
+    e   = e(:);     % convert to colum vector
+    E   = zeros(size(e)); % initialize output argument
+    ell = (e < 1);  % elliptic orbits
     par = (e == 1); % parabolic escape trajectories
     hyp = (e > 1);  % hyperbolic escape trajectories
-   
+
     % elliptic cases
     if any(ell)
 
@@ -58,16 +57,16 @@ function E = eM2E(e, M, tol)
         % put M in interval (-pi < M < +pi)
         if any(Me > pi) || any(Me < -pi)
             Me = mod(Me, 2*pi);
-            Me(Me > pi) = Me(Me > pi) - 2*pi;            
+            Me(Me > pi) = Me(Me > pi) - 2*pi;
         end
-        
+
         % apprioximate root from Mikkola's paper
         gamma = (4*ee + 1/2);
         alpha = (1 - ee)./gamma;
         beta  = Me./(2*gamma);
         z     = (beta + sign(beta).*sqrt(beta.^2 + alpha.^3));
         z     = sign(z).*abs(z).^(1/3);
-        z(z==0) = realmin;  % prevent 1-over-0 
+        z(z==0) = realmin;  % prevent 1-over-0
         s  = z - alpha./z;
         s  = s - 0.078*s.^5./(1 + ee);
         Ee = Me + ee.*(3*s - 4*s.^3);
@@ -75,7 +74,7 @@ function E = eM2E(e, M, tol)
 
         % perform Newton-Raphson iterations
         while any(abs(Ee-Ep) >= tol)
-            Ep = Ee;  
+            Ep = Ee;
             Ee = Ee + (Me + ee.*sin(Ee) - Ee) ./ (1 - ee.*cos(Ee));
         end
 
@@ -84,8 +83,8 @@ function E = eM2E(e, M, tol)
         Ee(Me == +pi) = +pi;
         Ee(Me == -pi) = -pi;
 
-        % add the same amount of multiples of 2pi to [E] as 
-        % there were in [M]        
+        % add the same amount of multiples of 2pi to [E] as
+        % there were in [M]
         Ee = Ee + sign(M(ell)).*fix((abs(M(ell))+pi)/2/pi)*2*pi;
 
         % insert into final array
@@ -119,10 +118,10 @@ function E = eM2E(e, M, tol)
         end
 
         % insert into final array
-        E(hyp) = Eh;            
+        E(hyp) = Eh;
 
-    end   
-    
+    end
+
     % solve parabolic cases
     if any(par(:))
         % [E] is not defined; return [theta]

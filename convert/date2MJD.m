@@ -1,14 +1,13 @@
 function MJD = date2MJD(year, month, day, hour, minute, second)
-% MJD = DATE2MJD(year, month, day, hour, minute, second) simply 
-% converts the given date to the modified Julian date. 
+% MJD = DATE2MJD(year, month, day, hour, minute, second) simply
+% converts the given date to the modified Julian date.
 
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 15/Jun/2009 (Rody)
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
     % parse input
     zero = zeros(size(year));
@@ -20,7 +19,7 @@ function MJD = date2MJD(year, month, day, hour, minute, second)
     % get Julian date
     JD = date2JD(year, month, day, hour, minute, second);
 
-    % subtract the constant 
+    % subtract the constant
     MJD = JD - 2400000.5;
 
 end

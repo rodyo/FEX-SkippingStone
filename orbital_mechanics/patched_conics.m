@@ -70,7 +70,8 @@ V_init = reshape(Y(2:end),3,[]).';
 
                 % non-CBF sequences: just departure velocities at GAM-bodies
                 else
-                    V_init = reshape(Y,3,[]).';
+                    %V_init = reshape(Y,3,[]).';
+                    V_init = reshape(Y(1:end-1),3,[]).';
                 end
         end
 
@@ -485,7 +486,7 @@ result.DETAIL_LEG{ii} = states;
         % mass after each GAM
         for ii = 1:numel(result.DeltaVs)
             % calculate mass
-            M = Tsjiolkovsky(result.DeltaVs(ii)+result.additional_DeltaV(ii), params.Isp, M, -1);
+            M = tsjiolkovsky(result.DeltaVs(ii)+result.additional_DeltaV(ii), params.Isp, M, []);
             % insert in result
             result.masses(ii+1) = M;
         end

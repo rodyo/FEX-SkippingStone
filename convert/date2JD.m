@@ -1,19 +1,18 @@
 function JD = date2JD(year, month, day, hour, minute, second)
-% JD = DATE2JD(year, month, day, hour, minute, second) converts the 
-% given calendar date to the corresponding Julian date. Leapseconds 
-% are not taken into account, but leapyears are. 
+% JD = DATE2JD(year, month, day, hour, minute, second) converts the
+% given calendar date to the corresponding Julian date. Leapseconds
+% are not taken into account, but leapyears are.
 %
-% All arguments may be vectors or matrices, as long as they all 
+% All arguments may be vectors or matrices, as long as they all
 % have the same amount of elements. In case the arguments are non-
 % scalar, the output will have the same size as the year argument.
 
-% Authors
-% ==============================================================================
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 15/Jun/2009 (Rody)
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
 % (calculation simply copied from http://en.wikipedia.org/wiki/Julian_date)
 
@@ -32,5 +31,5 @@ function JD = date2JD(year, month, day, hour, minute, second)
     % Julian date
     JD = floor(365.25*(year + 4716.0)) + floor( 30.6001*( month + 1.0)) + 2.0 - ...
          floor( year/100.0 ) + floor(floor(year/100.0)/4.0) + ...   % leap year corrections
-         day - 1524.5 + (hour + minute/60 + second/3600)/24;        % days and fraction of day                                 
+         day - 1524.5 + (hour + minute/60 + second/3600)/24;        % days and fraction of day
 end

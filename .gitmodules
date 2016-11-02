@@ -10,3 +10,6 @@
 [submodule "optimization/minimize"]
 	path = optimization/minimize
 	url = https://github.com/rodyo/FEX-minimize
+[submodule "orbital_mechanics/tsjiolkovsky"]
+	path = orbital_mechanics/tsjiolkovsky
+	url = https://github.com/rodyo/FEX-Tsjiolkovsky

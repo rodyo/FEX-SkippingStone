@@ -1,17 +1,16 @@
 % mass, velocity, thrust and position of an ExpoSin, for an
 % equally-spaced amount of points [steps].
 %
-% ( Serves as an initial estimate for COLLOCATION() ) 
+% ( Serves as an initial estimate for COLLOCATION() )
 function initial = exposin2initial_collocation(exposin, r1vec, r2vec, m0, mf, steps)
 %EXPOSIN2INITIAL
 
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.
+% Author:
 % Name       : Rody P.S. Oldenhuis
-% E-mail     : oldenhuis@dds.nl / oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+% E-mail     : oldenhuis@gmail.com
 
-% Last edited 24/Mar/2009.
+% If you find this work useful, please consider a small donation:
+% https://www.paypal.me/RodyO/3.5
 
 
 
