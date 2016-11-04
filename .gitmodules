@@ -13,3 +13,6 @@
 [submodule "orbital_mechanics/tsjiolkovsky"]
 	path = orbital_mechanics/tsjiolkovsky
 	url = https://github.com/rodyo/FEX-Tsjiolkovsky
+[submodule "orbital_mechanics/progress_orbit"]
+	path = orbital_mechanics/progress_orbit
+	url = https://github.com/rodyo/FEX-progress_orbit

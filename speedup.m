@@ -86,7 +86,7 @@ function speedup
     %% COMPILE ORBITAL MECHANICS ROUTINES
 
     % Compile Kepler State Transition Matrix routine
-    cd([rootdir,filesep,'orbital_mechanics']);
+    cd(fullfile(rootdir,'orbital_mechanics','progress_orbit'));
     fprintf(1, 'Compiling PROGRESS_ORBIT.C...\n');
     try
         mex progress_orbit.c
