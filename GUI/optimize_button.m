@@ -6,7 +6,7 @@ function optimize_button(varargin)
     %% Initialize
 
     % get globals
-    global MainWin sequence_tab output_tab
+    global MainWin sequence_tab output_tab algorithms_tab
 
     % extract relevant data
     settings    = getappdata(MainWin, 'settings'   );
@@ -65,7 +65,8 @@ function optimize_button(varargin)
                                   'You may choose to use this result as the initial value for a high-accuracy local search, ',...
                                   'or perform a new medium-accuracy global search with the current settings.'],...
                                   'Choose optimiation type',...
-                                  'Perform new global search', 'Perform high-accuracy local search',...
+                                  'Perform new global search', ...
+                                  'Perform high-accuracy local search',...
                                   'Perform high-accuracy local search');
 
         switch lower(button_pressed)
@@ -76,6 +77,8 @@ function optimize_button(varargin)
                 % that part of the function
                 calculation.results.first_order.best.solution = [];
                 setappdata(MainWin, 'calculation', calculation);
+                
+                toggle_panel(handles.tab(algorithms_tab).second_order_panel, 'disable');
 
             case 'perform high-accuracy local search'
                 % do nothing; a non-empty [...best.solution] will cause
@@ -194,12 +197,17 @@ function optimize_button(varargin)
     else
         % first write results to appdata
         setappdata(MainWin, 'calculation', calculation);
-        % update the progress bar
+        
+        % enable local search panel on the Algorithms tab
+        toggle_panel(handles.tab(algorithms_tab).second_order_panel, 'reset');
+        
         progress_bar(1, 'Optimization completed sucessfully.')
+        
         % finish off this optimization
         callbacks('showtab', output_tab); % switch to output window
         generate_output('embedded');      % and display results
-        progress_bar('');    % and reset the progress bar
+        
+        progress_bar('');    
     end
 
 end % optimize button

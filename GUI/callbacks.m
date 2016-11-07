@@ -500,42 +500,55 @@ function varargout = callbacks(funfcn, varargin)
 
     % switch engine type
     function engine(varargin)%#ok
+        
+        have_ionengine = false;
+        
         % change the contents and visibility of the edit-boxes
         switch varargin{2}.NewValue
             case lt.propulsion(1) % High-thrust
+                
                 % enable/disaple appropriate engine controls
-                set(lt.Sail, 'enable','off');
-                set(lt.High, 'enable','on');
-                set(lt.Ion , 'enable','off');
-                set(lt.Isp, 'enable','on');
+                set([lt.Sail lt.Ion], 'enable','off');
+                set([lt.High lt.Isp], 'enable','on');
+                
                 % also change Isp-seting
                 set(lt.High(2),...
                     'string'    , settings.propulsion.high_thrust.Isp,...
                     'callback'  , @(varargin) modify_settings('change_single_setting', ...
                         'propulsion.high_thrust.Isp', [], varargin{:}));
+                    
                 % change the different Isp
-                captureIsp;
+                captureIsp();
+                
             case lt.propulsion(2) % Low-thrust: Ion
+                
+                have_ionengine = true;
+                
                 % enable/disaple appropriate controls
                 set(lt.Sail,'enable','off');
-                set(lt.High,'enable','on');
-                set(lt.Ion ,'enable','on');
-                set(lt.Isp, 'enable','on');
+                set([lt.High lt.Ion lt.Isp], 'enable','on');
+                 
                 % also change Isp-seting
                 set(lt.High(2),...
                     'string'    , settings.propulsion.ion_engine.Isp,...
-                    'callback'  , @(varargin) modify_settings('change_single_setting',...
-                        'propulsion.ion_engine.Isp', [], varargin{:}));
+                    'callback'  , @(varargin) ...
+                    modify_settings('change_single_setting',...
+                                    'propulsion.ion_engine.Isp', ...
+                                    [], ...
+                                    varargin{:}));
                 % change the different Isp
-                captureIsp;
+                captureIsp();
+                
             case lt.propulsion(3) % Low-thrust: Sail
                 set(lt.Sail,'enable','on');
-                set(lt.High,'enable','off');
-                set(lt.Ion ,'enable','off');
-                set(lt.Isp,'enable','off');
+                set([lt.High lt.Ion	lt.Isp],'enable','off');
         end
-        % also adjust the controls in the sequence
-        set_propulsiondependent_GAM_controls;
+        
+        % also adjust dependent controls 
+        set_propulsiondependent_GAM_controls();
+        set_propulsiondependent_pwr_controls(have_ionengine);
+        set_propulsiondependent_algo_controls(have_ionengine);
+        
     end
 
     % enable/disable capture Isp
@@ -614,7 +627,7 @@ function varargout = callbacks(funfcn, varargin)
             structfun(@(x) set(x(which_GAM_body), 'enable', 'on'), st.GAM)
             % disable those that are not applicable for the current
             % propulsion or GAM-type settings
-            set_propulsiondependent_GAM_controls;
+            set_propulsiondependent_GAM_controls();
             change_GAM_type(which_GAM_body);
             % change the minimum altitude
             set(st.GAM.minalt(which_GAM_body), 'string', ...
@@ -670,50 +683,95 @@ function varargout = callbacks(funfcn, varargin)
     % change the minimum altitudes (a neccessary exception to
     % MODIFY_SETTINGS('change_single_setting'))
     function change_minimum_altitude(which_one, check, varargin) %#ok<VANUS>
+        
         % get currently selected body
         current_body = get(st.GAM.body(which_one), 'value') - 1; % remove 'none'
+        
         % get the new value
         new_value = get(st.GAM.minalt(which_one), 'string');
+        
         % check the inserted value (or not)
         if strcmpi(check, 'check')
             good = modify_settings('check_value', str2double(new_value));
         else
             good = true;
         end
+        
         % if it's good, insert it into its proper index
         if good
             settings.GAM.min_altitude(current_body, which_one) = str2double(new_value);
-        % otherwise, reset to the previous value
+            % otherwise, reset to the previous value
         else
             set(st.GAM.minalt(which_one), 'string', ...
                 settings.GAM.min_altitude(current_body, which_one));
         end
     end
+    
+    % Toggle power panel based on engine setting
+    function set_propulsiondependent_pwr_controls(have_ion)
+        
+        pnl = handles.tab(launch_tab).powersupply_panel;
+        
+        if have_ion
+            toggle_panel(pnl, 'reset');
+            % This deals with the radios
+            enable_jettison();
+            
+        else
+            toggle_panel(pnl, 'disable');
+            
+            % The radios on the GAM tab are also coupled
+            jettison_radios = handles.tab(sequence_tab).GAM.jettison;
+            set(jettison_radios(:),...
+                'enable', 'off');            
+        end
+        
+    end
+    
 
+    % Toggle algorithm panel based on engine setting
+    function set_propulsiondependent_algo_controls(have_ion)
+        
+        pnl = handles.tab(algorithms_tab).LowThrustApproximationGroup;
+        
+        if have_ion
+            toggle_panel(pnl, 'reset');
+        else
+            toggle_panel(pnl, 'disable');
+        end
+    end
+    
     % disable some GAM-controls, depending on
     % the selected propulsion type
-    function set_propulsiondependent_GAM_controls
+    function set_propulsiondependent_GAM_controls()
+        
         % get the index for the last selected body
         index = sum(cellfun(@(x) strcmpi(x,'on'), ...
-            get(st.GAM.body, 'enable')))-1;
+                    get(st.GAM.body, 'enable'))) - 1;
+                
         % get the names of the selected bodies
         selected_bodies = get(st.GAM.body(1), 'string');
         values          = get(st.GAM.body, 'value');
         selected_bodies = {selected_bodies{[values{:}].'}}.';%#ok
+        
         % if any of the names of the selected bodies is equal to that of the
         % model's central body, set its GAM-type to "central body flyby"
         centrals = strcmpi(selected_bodies, model.CentralBody{1});
         set(st.GAM.type(centrals), ...
             'string', {'Central body flyby'},...
             'value' , 1);
-        % also change the corresponding setting
+        
+        % also change the corresponding setting        
         settings.GAM.type(centrals) = {'Central body flyby'};
+        
         % get the strings for the other bodies
         strings = get(st.GAM.type, 'string');
+        
         % find those that need to be modified
         noncell_inds = ~cellfun(@iscell, strings);
         strings(noncell_inds) = {strings(noncell_inds)};
         numel_strings = cellfun(@numel, strings);
+        
         % if low thrust has been selected
         if any(~centrals)
             if settings.propulsion.selected(2) || settings.propulsion.selected(3)
@@ -757,8 +815,10 @@ function varargout = callbacks(funfcn, varargin)
                     'value', 2);
             end
         end
+        
         % enable DSM and Delta-V boxes
-        for ii = 1:index, change_GAM_type(ii); end
+        for ii = 1:index
+            change_GAM_type(ii); end
     end
 
     % disable L/D and Max.DV-controls, depending on the
@@ -922,7 +982,7 @@ function varargout = callbacks(funfcn, varargin)
             string = get(st.target.body, 'string');
             set(st.target.body, 'string', [string; 'Choose Minor Planet...']);
             % disable all controls while loading
-            [objects, states] = disable_all;
+            [objects, states] = disable_all();
             % load the names
             model = minor_planets_parameters(model, environment, constants, false);
             % save the settings
@@ -971,7 +1031,7 @@ function varargout = callbacks(funfcn, varargin)
         end
 
         % first disable all inputs
-        [objects, states] = disable_all;
+        [objects, states] = disable_all();
 
         % create progress window
         progress_bar(0, 'Updating minor planet model-file, please wait...'); pause(0.25)
@@ -1571,6 +1631,7 @@ function varargout = callbacks(funfcn, varargin)
 
     % disable every control
     function [objects, states] = disable_all(varargin)
+        
         % collect all handles
         if (nargin == 0)
             controls = get(ct.panel, 'children');
@@ -1578,8 +1639,10 @@ function varargout = callbacks(funfcn, varargin)
         else
             objects = get(varargin{1}, 'children');
         end
+        
         % initialize
         states = repmat({'off'}, size(objects, 1), 1);
+        
         % disable everything, while saving the original state
         for ii = 1:numel(states)
             % UIPANELS and AXES have no 'enable' property
@@ -1598,6 +1661,7 @@ function varargout = callbacks(funfcn, varargin)
                 objects = [objects; nested_objects];%#ok
             end
         end
+        
     end % disable all controls
 
     % reset all controls

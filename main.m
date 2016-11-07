@@ -41,8 +41,8 @@
        for the compiled version (ASCII). This is for someone else 
        to do ^_^
  
-     - replace all -1's in GAM-fields with defaults
- 
+     - "Objectives" don't belong on the "Algorithms" tab
+
      - models should be "clearable" (if model is changed, previous model 
         should be unloaded to avoid memory problems)
  
@@ -100,16 +100,16 @@ function varargout = main(varargin) %#ok<VANUS>
                    'Only one instance allowed'}, 'One instance is allowed.')
         return
     end
-        
-    % turn off ALL warnings 
-    warning('off')%#ok
-    
-    % enable multithreaded-BLAS routines
+            
+    % Enable multithreaded-BLAS routines
     % NOTE: implicit multithreading only
     % (this is not on by default in MATLAB versions prior to R2009a)
     maxNumCompThreads('automatic');   
     
     % now build the main window
-    build_main_window(environment, model, constants, calculation, settings);
-    
+    build_main_window(environment,...
+                      model,...
+                      constants,...
+                      calculation,...
+                      settings);    
 end % main

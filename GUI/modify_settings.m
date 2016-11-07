@@ -31,8 +31,12 @@ function varargout = modify_settings(funfcn, varargin)
     
     %% Default values
     
-    function [environment, model, constants, calculation, settings] = ...
-            default_values(rootdir)%#ok
+    function [environment,...
+              model,...
+              constants,...
+              calculation,...
+              settings] = default_values(rootdir)%#ok
+          
     % Load default values. This function is called on program
     % startup, or when the user selects the "reset to default"
     % menu option.
@@ -62,7 +66,7 @@ function varargout = modify_settings(funfcn, varargin)
             'Dr. Dario Izzo (ESA/ACT)',...            
             };
 
-        % determine whether Octave or MATLAB is running
+        % Determine whether Octave or MATLAB is running
         % (trick from author 'ioxv.4623' on matlab file exchange)
         environment.UI  = 'Unknown';
         LIC = license('inuse');
@@ -80,10 +84,10 @@ function varargout = modify_settings(funfcn, varargin)
 
         % pathing: set rootdir, datadir, previous path, and set proper path
         ep.rootdir     = rootdir;
-        ep.datadir     = [rootdir, filesep, 'data'];
+        ep.datadir     = fullfile(rootdir, 'data');
         ep.prevpath    = path;
-        ep.MP_filename = [ep.datadir, filesep, ...
-            'asteroids', filesep, 'MPCORB.DAT'];
+        ep.MP_filename = fullfile(ep.datadir, 'asteroids', 'MPCORB.DAT');
+        
         addpath(genpath(rootdir));
         environment.pathing = ep;
 
@@ -101,7 +105,7 @@ function varargout = modify_settings(funfcn, varargin)
 %         end
         
         % see if the optimization toolbox is available
-        if exist('fmincon', 'file') == 2
+        if ~isempty(ver('optim'))
             environment.optim_toolbox_available = true;
         else
             environment.optim_toolbox_available = false;
@@ -123,7 +127,7 @@ function varargout = modify_settings(funfcn, varargin)
                 % check the info
                 if any(~isfield(costfun_info, ...
                         {'name', 'function_handle', 'description', 'axis_label'}))
-                    error(' '); %<--- force the try-catch to fail
+                    error(' '); %#ok<ERTAG> %<--- force the try-catch to fail
                 end
                 % insert in output argument.
                 environment.plugin_info.costfuns(i) = costfun_info;
@@ -151,7 +155,7 @@ function varargout = modify_settings(funfcn, varargin)
                 % check the info & GUI commands
                 if any(~isfield(pp_info, {'name', 'function_handle', ...
                         'GUI_function_handle' 'plot_function_handle'}))
-                    error(' '); %<--- force the try-catch to fail
+                    error(' '); %#ok<ERTAG> <--- force the try-catch to fail
                 end
                 % insert in output argument
                 environment.plugin_info.postprocessors(i) = pp_info;
@@ -527,7 +531,7 @@ function varargout = modify_settings(funfcn, varargin)
         set(ot.MinTOFObjective      , 'value', so.objectives.min_tof );
         set(ot.OtherObjectives.check, 'value', so.objectives.other.use);
         % re-check if optimization toolbox is available
-        environment.optim_toolbox_available = (exist('fmincon', 'file') == 2);                   
+        environment.optim_toolbox_available = ~isempty(ver('optim'));                   
         if environment.optim_toolbox_available && so.local.optimizer(1)
             set(ot.local_optimizer(1), 'value', 1);
         elseif settings.optimize.local.optimizer
