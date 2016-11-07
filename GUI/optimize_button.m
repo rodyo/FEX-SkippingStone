@@ -408,9 +408,11 @@ function varargout = MGA(batch_or_normal)
             setappdata(MainWin, 'model', model);
             % selected type of integrator
             integrators = {...
-                @(odefun,tspan,y0,options)       ode45(odefun, tspan, y0, options);
-                @(odefun,tspan,y0,dy0,options)   rkn86(odefun, tspan, y0, dy0, options);
-                @(odefun,tspan,y0,dy0,options) rkn1210(odefun, tspan, y0, dy0, options)};
+                @(odefun,tspan,y0,options)      ode113(odefun, tspan, y0, options)
+                @(odefun,tspan,y0,dy0,options)   rkn86(odefun, tspan, y0, dy0, options)
+                @(odefun,tspan,y0,dy0,options) rkn1210(odefun, tspan, y0, dy0, options)
+                @(odefun,tspan,y0,dy0,options) []   % TODO: ODEX2
+                @(odefun,tspan,y0,dy0,options) []}; % TODO: GBS
             integrator = integrators{logical(settings.optimize.local.integrator)};
             % pass all data also to NBody()
             int_options = struct(...

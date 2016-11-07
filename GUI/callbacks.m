@@ -149,13 +149,10 @@ function varargout = callbacks(funfcn, varargin)
             contributor_string;
             {' ';
             ' ';
-            ['Version: ',Version];
+            ['Version: ', Version];
             ' ';
             ' ';
-            ['           Copyright 2009, all rights reserved. ', progname, ' is '];
-        '            an ongoing project of M.Sc. students at the TU-Delft. ';
-        '            Currently, it is in the early development phase, and most ';
-        '            likely prone to some bugs. ';
+            '           Copyright (C) 2016, all rights reserved.'
             ' ';
             ' ';
             ' Please report any bugs to Rody.';
@@ -732,7 +729,8 @@ function varargout = callbacks(funfcn, varargin)
     % Toggle algorithm panel based on engine setting
     function set_propulsiondependent_algo_controls(have_ion)
         
-        pnl = handles.tab(algorithms_tab).LowThrustApproximationGroup;
+        pnl = [handles.tab(algorithms_tab).LowThrustApproximationGroup
+               handles.tab(algorithms_tab).second_order_panel_low_thrust_method_group];
         
         if have_ion
             toggle_panel(pnl, 'reset');

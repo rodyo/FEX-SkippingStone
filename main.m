@@ -78,9 +78,13 @@ function varargout = main(varargin) %#ok<VANUS>
     output_tab      = 5;       BATCH_optimization = 5;
                                optimization_statistics = 6;        
     % Current version
-    Version = '0.8 beta'; % working, but far from perfect...:D 
+    Version = '0.9 alpha'; % working, but far from perfect...:D 
+    
     % return version if requested
-    if nargin == 1, varargout{1} = Version; return, end
+    if nargin == 1
+        varargout{1} = Version; 
+        return;
+    end
             
     % default figure handle
     % (figure 123456798 will probably never be used)
@@ -104,9 +108,10 @@ function varargout = main(varargin) %#ok<VANUS>
     % Enable multithreaded-BLAS routines
     % NOTE: implicit multithreading only
     % (this is not on by default in MATLAB versions prior to R2009a)
-    maxNumCompThreads('automatic');   
+    if verLessThan('MATLAB', '7.8')
+        maxNumCompThreads('automatic'); end
     
-    % now build the main window
+    % now build the GUI
     build_main_window(environment,...
                       model,...
                       constants,...
