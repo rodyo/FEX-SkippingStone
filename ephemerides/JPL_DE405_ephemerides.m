@@ -31,7 +31,7 @@ function statevec = JPL_DE405_ephemerides(times, ppobjects)
         % get the time step required
         timestep = times - breaks(end);
         % generate ephemerides
-        statevec = progress_orbit(timestep, last_statevec, 132712439940);
+        statevec = progressOrbit(timestep, last_statevec, 132712439940);
         % we're done
         return
     end
@@ -43,7 +43,7 @@ function statevec = JPL_DE405_ephemerides(times, ppobjects)
         first_statevec = JPL_DE405_ephemerides(0, ppobjects(:));
         % generate ephemerides
         % (time step required is the time itself)
-        statevec = progress_orbit(times, first_statevec, 132712439940);
+        statevec = progressOrbit(times, first_statevec, 132712439940);
         % we're done
         return
     end

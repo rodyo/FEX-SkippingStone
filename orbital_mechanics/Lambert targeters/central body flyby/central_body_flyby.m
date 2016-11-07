@@ -387,8 +387,8 @@ rp = rpmax-0.1*150e6;
     % collect output arguments     
     params.DeltaV = DeltaV;        % deltaV used at pericenter
     params.rp     = rp;            % pericenter distance
-    rp1_vec = progress_orbit(tf1, [r1vec,V1],muC); % actual statevector to point of closest approach         
-    rp2_vec = progress_orbit(tf1-tf, [r2vec,V2],muC); % also from second point
+    rp1_vec = progressOrbit(tf1,    [r1vec,V1],muC); % actual statevector to point of closest approach         
+    rp2_vec = progressOrbit(tf1-tf, [r2vec,V2],muC); % also from second point
     params.rp_vec = rp1_vec(1:3);  % only position
     params.Vp_vec = [rp1_vec(4:6); % velocity from first body's orbit
                      rp2_vec(4:6)];% velocity from last body's orbit

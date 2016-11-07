@@ -449,7 +449,9 @@ function varargout = modify_settings(funfcn, varargin)
         end
         set(st.DepartureBody, 'value', sd.body);         
         % model
-        for ii = 1:5, set(st.selected_model(ii), 'value',  settings.model(ii)); end
+        for ii = 1:5
+            set(st.selected_model(ii), 'value',  settings.model(ii)); end
+        
         % swingbys
         for ii = 1:environment.numGAMpanels
             set(st.GAM.body(ii)     , 'value' , sG.body(ii)            );
@@ -464,11 +466,13 @@ function varargout = modify_settings(funfcn, varargin)
             set(st.GAM.jettison(ii) , 'value' , sG.jettison(ii)        );
             set(st.GAM.minalt(ii)   , 'string', sG.min_altitude(ii)    );
         end  
+        
         % swingby constraints
         set(st.MaxTotalTOF      , 'string', sG.constraints.max_tof           );
         set(st.MaxTotalDeltaV   , 'string', sG.constraints.max_DV            );
         set(st.MinDistToSun     , 'string', sG.constraints.min_Solar_distance);
         set(st.C3LoverDTolerance, 'string', sG.constraints.C3LoverD_tolerance);
+        
         % target
         set(st.target.body  , 'value' , sT.body  );
         set(st.target.TOF_LB, 'string', sT.TOF_LB(sT.body));

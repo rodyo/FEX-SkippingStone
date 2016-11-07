@@ -949,9 +949,9 @@ settings.plot_options.resolution = 'low';
                     times = R.encounter_times(ii,:);
                     times = times(isfinite(times));
                     % find the associated positions
-                    states = progress_orbit(times(:)-t0s(ii), xs(ii, :), muC);                        
+                    states = progressOrbit(times(:)-t0s(ii), xs(ii, :), muC);                        
 % plot MP immediately
-% ??? WARP OF COURSE!
+% TODO: ...warp?
 plot3(states(:,1)/AU, states(:,2)/AU, states(:,3)/AU, ...
 'color', textcolor, ...
 'marker', '.');

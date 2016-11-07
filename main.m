@@ -32,12 +32,7 @@
        change the selectable bodies to aerogravable bodies. Remember 
        to change the list back to normal (model.GAMable) when aerograv
        is changed again.
- 
-     - Make "jettison solar panels" available only when the option has 
-       been selected in the launch & satellite data tab. Also, make all
-       of them radio-buttons (because the panels can only be jetisonned
-       once). 
- 
+      
      - Make "General settings" menu, containing "Use MultiThreading", 
        "Use NVIDIA-CUDA", and general settings like "Program paths" and
        "File name format" (for BATCH optimizations) etc.

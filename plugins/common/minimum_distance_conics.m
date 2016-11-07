@@ -712,8 +712,8 @@ end % min/max distances
 % instantaneous relative speed
 function [R, distance, speed] = Rrrel(t, t0,x0p,x0s,muC) 
     % compute new states with progress_orbit()
-    statep = progress_orbit(t(:)-t0,x0p, muC, 'seconds');
-    states = progress_orbit(t(:)-t0,x0s, muC, 'seconds');
+    statep = progressOrbit(t(:)-t0,x0p, muC, 'seconds');
+    states = progressOrbit(t(:)-t0,x0s, muC, 'seconds');
     % rename
     rrel = statep(:,1:3)-states(:, 1:3);
     Vrel = statep(:,4:6)-states(:, 4:6);

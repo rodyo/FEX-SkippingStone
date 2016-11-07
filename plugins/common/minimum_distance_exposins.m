@@ -288,7 +288,7 @@ function [reachable, encounter_times, min_dist, rel_speed] = ...
             statep(ii, :) = [t2*t2*t2, t2*t2, t2, 1] * spline_coefs(:,:,breakpoint);
         end        
         % compute new states of the secondaries        
-        states = progress_orbit(t(:)-t0,x0s(index,:), muC, 'seconds');
+        states = progressOrbit(t(:)-t0,x0s(index,:), muC, 'seconds');
         % rename
         rrel = statep(:,1:3) - states(:, 1:3);
         Vrel = statep(:,4:6) - states(:, 4:6);

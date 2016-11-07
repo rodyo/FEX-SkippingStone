@@ -453,6 +453,7 @@ function varargout = callbacks(funfcn, varargin)
 
    % enable/disable SEP/NEP options
     function change_power_supply(varargin)%#ok
+        
         % enable/disable appropriate controls
         switch varargin{2}.NewValue
             case lt.power_radio(1)
@@ -461,7 +462,8 @@ function varargout = callbacks(funfcn, varargin)
                 % enable SEP-options
                 set(lt.SEP, 'enable', 'on');
                 % disable or enable the jettison-mass box
-                enable_jettison
+                enable_jettison();
+                
             case lt.power_radio(2)
                 % disable NEP-options
                 set(lt.NEP, 'enable', 'on');
@@ -474,12 +476,26 @@ function varargout = callbacks(funfcn, varargin)
 
     % enable/disable Panel mass edit box
     function enable_jettison(varargin) %#ok<VANUS>
+        
         % enable/disable appropriate controls
-        if get(lt.SEP(7), 'value')
-            set(lt.Jettison, 'enable', 'on');
-        else
-            set(lt.Jettison, 'enable', 'off');
+        on_off  = {'off' 'on'};
+        checked = get(lt.SEP(7), 'value');
+        on_off  = on_off{checked+1};
+        
+        % Sequence tab; jettison radio buttons
+        jettison_radios = handles.tab(sequence_tab).GAM.jettison;
+        
+        if checked           
+            GAM_bodies      = get(handles.tab(sequence_tab).GAM.body, 'string');
+            GAM_selections  = get(handles.tab(sequence_tab).GAM.body, 'value');        
+            GAM_selected    = cellfun(@(x,y) ~strcmp(x{y}, '(none)'), ...
+                                      GAM_bodies, GAM_selections);
+            radio_enable    = 1:min(4, sum(GAM_selected)+1);
+            jettison_radios = jettison_radios(radio_enable);        
         end
+                     
+        set([lt.Jettison(:); jettison_radios(:)],...
+            'enable', on_off);         
     end
 
     % switch engine type

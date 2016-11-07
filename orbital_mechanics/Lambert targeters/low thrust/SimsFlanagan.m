@@ -131,8 +131,8 @@ if plotit, figure(1), clf, hold on, end
             %% compute conditions at new points
 
             % new statevector
-            states_fwd = progress_orbit(+step, states_fwd, muC);
-            states_bwd = progress_orbit(-step, states_bwd, muC);
+            states_fwd = progressOrbit(+step, states_fwd, muC);
+            states_bwd = progressOrbit(-step, states_bwd, muC);
             % Add DeltaV
             states_fwd(4:6) = states_fwd(4:6) + DeltaVs_fwd(ii, :);
             states_bwd(4:6) = states_bwd(4:6) - DeltaVs_bwd(ii, :);
