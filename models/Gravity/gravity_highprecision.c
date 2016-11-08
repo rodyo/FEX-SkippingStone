@@ -32,13 +32,27 @@
  *      contract NAS9-17885.
 */
 
+
+static double nn[GRAVITY_COEFF_MAXDEGREE] = 0.0,
+              mn[GRAVITY_COEFF_MAXDEGREE] = 0.0;
+
+
 /* Fully normalized associated Legendre polynomials */
 static
 void
 ComputeLegendrePolys(double phi,
-                     unsigned int nmax)
+                     unsigned int nmax,
+                     double (*Pnm[GRAVITY_COEFF_MAXDEGREE+3u][GRAVITY_COEFF_MAXDEGREE+3u]))
 {
-    unsigned int n, m;
+    /* Computation based on equations 7-9 and 7-10 from [1] */
+
+    static unsigned int Pnm_initialized = 0u;
+
+    static double  xi[GRAVITY_COEFF_MAXDEGREE][GRAVITY_COEFF_MAXDEGREE] = 0.0,
+                  eta[GRAVITY_COEFF_MAXDEGREE][GRAVITY_COEFF_MAXDEGREE] = 0.0;
+
+    unsigned int n,
+                 m;
 
     double cphi = cos(PI_OVER_2 - phi),
            sphi = sin(PI_OVER_2 - phi);
@@ -46,9 +60,16 @@ ComputeLegendrePolys(double phi,
     if (fabs(cphi) <= EPS) cphi = 0.0;
     if (fabs(sphi) <= EPS) sphi = 0.0;
 
-    Gravity_P[0][0] = 1.0;
-    Gravity_P[1][0] = SQUAREROOT3 * cphi;
-    Gravity_P[1][1] = SQUAREROOT3 * sphi;
+    if (!Pnm_initialized)
+    {
+        /* TODO: implement eqs. 7-10 and 7-12 */
+    }
+
+
+
+    (*Pnm)[0][0] = 1.0;
+    (*Pnm)[1][0] = SQUAREROOT3 * cphi;
+    (*Pnm)[1][1] = SQUAREROOT3 * sphi;
 
     for (n=2u; n<nmax+3u; ++n)
     {
@@ -59,15 +80,15 @@ ComputeLegendrePolys(double phi,
                sn2   = sqrt(n2+0.0),  sn2p1 = sqrt(n2+1.0),
                sn2m3 = sqrt(n2-3.0),  sn2m1 = sqrt(n2-1.0);
 
-        Gravity_P[n][0] = sn2p1/nn[n] *
-                         (sn2m1*cphi*Gravity_P[nm1][0u] - nm1d/sn2m3 * Gravity_P[n-2u][0u]);
+        (*Pnm)[n][0] = sn2p1/nn[n] *
+                         (sn2m1*cphi*(*Pnm)[nm1][0u] - nm1d/sn2m3 * (*Pnm)[n-2u][0u]);
 
         for (m=1u; m<n+1u; ++m) {
-            Gravity_P[n][m] = sn2p1 / ( sqrt(nn[n]+mm[m]) * sqrt(nn[n]-mm[m]) ) *
-                             (sn2m1*cphi*Gravity_P[nm1][m] - sqrt(nm1d+mm[m]) * sqrt(nm1d-mm[m]) * Gravity_P[n-2u][m]/sn2m3);
+            (*Pnm)[n][m] = sn2p1 / ( sqrt(nn[n]+mm[m]) * sqrt(nn[n]-mm[m]) ) *
+                             (sn2m1*cphi*(*Pnm)[nm1][m] - sqrt(nm1d+mm[m]) * sqrt(nm1d-mm[m]) * (*Pnm)[n-2u][m]/sn2m3);
         }
 
-        Gravity_P[n][n] = sn2p1/sn2 * sphi*Gravity_P[nm1][nm1];
+        (*Pnm)[n][n] = sn2p1/sn2 * sphi*(*Pnm)[nm1][nm1];
 
     }
 
@@ -81,10 +102,11 @@ gravity_highprecision(const double pos_ECEF[3],
                       int compute_gradient,   double (*gradient)[3],
                       int compute_hessian,    double (*hessian)[3][3])
 {
-    static unsigned int grav_initialized = false;
+    static unsigned int grav_initialized = 0u;
 
-    static double nn[GRAVITY_COEFF_MAXDEGREE] = {0.0},
-                  mn[GRAVITY_COEFF_MAXDEGREE] = {0.0};
+    double Pnm[GRAVITY_COEFF_MAXDEGREE+3u][GRAVITY_COEFF_MAXDEGREE+3u] = 0.0,
+           cmlambda[GRAVITY_COEFF_MAXDEGREE+1u] = 0.0,
+           smlambda[GRAVITY_COEFF_MAXDEGREE+1u] = 0.0;
 
     unsigned int i,
                  n,
@@ -121,7 +143,7 @@ gravity_highprecision(const double pos_ECEF[3],
             nn[n] = (double)n;
             mm[n] = nn[n];
         }
-        grav_initialized = true;
+        grav_initialized = 1u;
     }
 
     /* Initialize output */
@@ -129,20 +151,20 @@ gravity_highprecision(const double pos_ECEF[3],
     for (i=0u; i<9u; ++i) (*hessian)[i]  = 0.0;
 
     /* Fully normalized associated Legendre polynomials */
-    ComputeLegendrePolys(phi, nmax);
+    ComputeLegendrePolys(phi, nmax, &Pnm);
 
 
     /* Compute partial derivatives of potential
      * ================================================================================ */
 
     /* pre-compute trig factors (recursion relations) */
-    Gravity_smlambda[0] = slambda;  Gravity_smlambda[1] = 2.0*clambda*slambda;
-    Gravity_cmlambda[0] = clambda;  Gravity_cmlambda[1] = 2.0*clambda*clambda - 1.0;
+    smlambda[0] = slambda;  smlambda[1] = 2.0*clambda*slambda;
+    cmlambda[0] = clambda;  cmlambda[1] = 2.0*clambda*clambda - 1.0;
 
     for (m=2u; m<=nmax; ++m)
     {
-        Gravity_smlambda[m] = 2.0*clambda*Gravity_smlambda[m-1u] - Gravity_smlambda[m-2u];
-        Gravity_cmlambda[m] = 2.0*clambda*Gravity_cmlambda[m-1u] - Gravity_cmlambda[m-2u];
+        smlambda[m] = 2.0*clambda*smlambda[m-1u] - smlambda[m-2u];
+        cmlambda[m] = 2.0*clambda*cmlambda[m-1u] - cmlambda[m-2u];
     }
 
     /* Compute double sum */
@@ -164,17 +186,17 @@ gravity_highprecision(const double pos_ECEF[3],
                 Snm += DeltaT * Gravity_Snm_dot[n][m];
             }
 
-            fac1 = Cnm * Gravity_cmlambda[m] + Snm * Gravity_smlambda[m],
-            fac2 = Snm * Gravity_cmlambda[m] - Cnm * Gravity_smlambda[m];
+            fac1 = Cnm * cmlambda[m] + Snm * smlambda[m],
+            fac2 = Snm * cmlambda[m] - Cnm * smlambda[m];
 
-            dUdr_m      += Gravity_P[n][m] * fac1;
-            dUdphi_m    += (Gravity_P[n][m+1u] - z*onxy * mm[m]*Gravity_P[n][m]) * fac1;
-            dUdlambda_m += mm[m]*Gravity_P[n][m] * fac2;
+            dUdr_m      += Pnm[n][m] * fac1;
+            dUdphi_m    += (Pnm[n][m+1u] - z*onxy * mm[m]*Pnm[n][m]) * fac1;
+            dUdlambda_m += mm[m]*Pnm[n][m] * fac2;
         }
 
         /* summation over n */
         roR_n       *= roR;
-        dUdr_n      += roR_n * dUdr_m * (nn[n]+1.0);
+        dUdr_n      += roR_n * dUdr_m * (nn[n] + 1.0);
         dUdphi_n    += roR_n * dUdphi_m;
         dUdlambda_n += roR_n * dUdlambda_m;
 
@@ -213,7 +235,7 @@ gravity_highprecision(const double pos_ECEF[3],
     /* Compute second derivatives (Hessian) */
     if (compute_hessian)
     {
-
+        /* TODO: eq 5-15, 8-30*/
     }
 }
 
