@@ -1,4 +1,4 @@
-/* LuxSpace - Rody Oldenhuis - Summary of changes to original
+/* Rody Oldenhuis - Summary of changes to original
  *
  * - removed dependency on external file; the DE405 definition file is
  *   comes in C-include form (binary), and is read here as such

@@ -26,8 +26,6 @@
  * details of the implementation encapsulated.
  *****************************************************************************/
 
-//extern unsigned char JPLEPH20002060Bin_405[];
-//extern unsigned int  JPLEPH20002060Bin_405_len;
 extern unsigned char JPLEPH19402100Bin_405[];
 extern unsigned int  JPLEPH19402100Bin_405_len;
 
