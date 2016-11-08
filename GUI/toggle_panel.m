@@ -1,19 +1,24 @@
+% Toggle a panel's children's enable states.
 function states = toggle_panel(panels_in, action)
-    
+
     for ii = 1:numel(panels_in)
-        
+
         panel = panels_in(ii);
-    
+
         switch lower(action)
+
+            % Disable: get all current enable states of all children, and
+            % store this in the Panel's UserData field
             case 'disable'
-                
-                
+
+                % If there already is data in the field, it's probably a sub-panel
+                % already managed separately; leave it be
                 if ~isempty(get(panel, 'UserData'))
                     states = {};
-                    return; 
-                end                    
+                    return;
+                end
 
-                % Save the uicontrol states; easier to reenable that way
+                % Get all children's enable states
                 states = {[], {}};
 
                 children = get(panel   , 'children');
@@ -27,7 +32,7 @@ function states = toggle_panel(panels_in, action)
                     new_states = toggle_panel(panels(jj), action);
                     if ~isempty(new_states)
                         states{1} = [states{1}; new_states{1}];
-                        states{2} = [states{2}; new_states{2}];                    
+                        states{2} = [states{2}; new_states{2}];
                     end
                 end
 
@@ -42,17 +47,20 @@ function states = toggle_panel(panels_in, action)
 
             case 'reset'
 
-                states = get(panel, 'UserData'); 
+                % Get the previous states
+                states = get(panel, 'UserData');
 
+                % Apply the previous states to the relevant controls
                 for jj = 1:numel(states{1})
                     set(states{1}(jj),...
                         'enable'  , states{2}{jj});
                 end
 
-                set(panel, 'UserData', []); 
+                % Clear the UserData field
+                set(panel, 'UserData', []);
                 states = {};
         end
-    
+
     end
-    
+
 end

@@ -1,84 +1,88 @@
 function progress_bar(progress, string)
-% Last changed 21/Jun/2009 (Rody)
-   
-% Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·
+% Author:
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@gmail.com
-% Affiliation: Delft University of Technology
+%              oldenhuis@luxspace.lu
+% Affiliation: LuxSpace sarl
+%              Delft University of Technology
 %              Partly performed at ISAS/JAXA
 
+% If you find this work useful, please consider a donation:
+% https://www.paypal.me/RodyO/3.5
+
     % initialize persistents & globals
-    global MainWin % handle to main window
+    global MainWin
+
     persistent BGCOLOR HANDLE
-    
+
     % define progress polygon and text
     if (nargin == 2)
-        
+
         % define the polygon and line
         xpatch = [0, progress, progress, 0];
-        ypatch = [0, 0, 1, 1]; 
-        
+        ypatch = [0, 0, 1, 1];
+
         % add percentage to the string
         progress = max(0, min(1, progress));
-        string = [string, ' (', num2str(round(progress*100)), '%)'];
-        
-        % define the color for the progress polygon        
+        string   = [string, ' (', num2str(round(progress*100)), '%)'];
+
+        % define the color for the progress polygon
         bgcolor = BGCOLOR + 0.1;
         bgcolor(bgcolor > 1) = 1;
-    
+
     % (reset progress bar to defaults)
     elseif (nargin == 1)
-        
+
         % first call is single cell array
-        if ~isa(progress, 'char') 
+        if ~isa(progress, 'char')
             % set persistent variables
             BGCOLOR = progress{1};
-            HANDLE  = progress{2};        
+            HANDLE  = progress{2};
         end
-        
+
         % subsequent calls are empty strings
-        
+
         % define the polygon and line
         xpatch = [0, 1, 1, 0];
-        ypatch = [0, 0, 1, 1];          
+        ypatch = [0, 0, 1, 1];
         % reset the string to "Idle"
         string = '(Idle)';
-        
+
         % set backgournd color
         bgcolor = BGCOLOR;
-        
+
     end
-    
+
     % when this function is called when the Main Window is not running, do
-    % nothing and simply return 
+    % nothing and simply return
     if isempty (HANDLE) || isempty(BGCOLOR) || ~ishandle(HANDLE)
-        return
-    end
-    
+        return; end
+
     % set the progress bar axes as the current axes and clear them
     set(0, 'currentfigure', MainWin);
-    set(MainWin, 'currentAxes', HANDLE); cla;
-    
-    % lines to redraw the box 
+    set(MainWin, 'currentAxes', HANDLE);
+    cla;
+
+    % lines to redraw the box
     % (gets overwritten by the progress polygon)
-    xline  = [1 0 0 1 1];
-    yline  = [0 0 1 1 0];
-    
+    xline = [1 0 0 1 1];
+    yline = [0 0 1 1 0];
+
     % draw the polygon, and re-draw the box
-    patch(xpatch, ypatch, bgcolor, 'EdgeColor', bgcolor);
-    l = line(xline,yline);   
-    set(l, 'color', 'k')
-    
-    % set the text    
-    text(0.5, 0.5, string, ...        
+    patch(xpatch, ypatch, bgcolor,...
+         'EdgeColor', bgcolor);
+    l = line(xline, yline, 'color', 'k');
+    %set(l, 'color', 'k')
+
+    % set the text
+    text(0.5, 0.5, string, ...
         'FontSize' , 9, ...
         'EraseMode', 'xor',...
         'color'    , 'k', ...
-        'HorizontalAlignment', 'center');   
-    
+        'HorizontalAlignment', 'center');
+
     % force the axes to be drawn (even in background)
-    drawnow
-    
+    drawnow();
+
 end
 

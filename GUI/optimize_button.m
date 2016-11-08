@@ -1,7 +1,6 @@
 %% Callback function for the optimize! button
 
-function optimize_button(varargin)
-% last updated 21/Nov/2009
+function optimize_button(varargin) %#ok<VANUS>
 
     %% Initialize
 
@@ -77,7 +76,7 @@ function optimize_button(varargin)
                 % that part of the function
                 calculation.results.first_order.best.solution = [];
                 setappdata(MainWin, 'calculation', calculation);
-                
+
                 toggle_panel(handles.tab(algorithms_tab).second_order_panel, 'disable');
 
             case 'perform high-accuracy local search'
@@ -111,7 +110,8 @@ function optimize_button(varargin)
 
         % BATCH-optimizations
         if settings.BATCH.check
-%??? TODO: implement BATCH optimizations
+            %{
+            %TODO: implement BATCH optimizations
 
             % For BATCH optimizations, we first have to select the
             % different parameters according to each sequence. Also, the
@@ -142,6 +142,8 @@ function optimize_button(varargin)
             % there's bound to be ONE successful
             successful = true;
 
+            %}
+
         % single optimziations
         else
             % Call the main function
@@ -152,17 +154,23 @@ function optimize_button(varargin)
 
     % optimization might fail for some un-debugged reason
     catch ME  %#ok<MUCTH>
+        
         % no success
         successful = false;
+        
         % form MATLAB-exception object
         mME = MException('MainWin:optimization_failed', ...
-                         'Too little debugging?');
+                         'Unhandled exception; this is a bug.');                     
         ME = addCause(ME, mME);
+        
         % report error
         report = getReport(ME, 'extended', 'hyperlinks', 'off');
+        
         % show warning
-        uiwait(warndlg({'Something went wrong:'; ' ';  report}, 'Optimization failed!', ...
-            'modal')); uiresume % <- blocks execution until OK is pressed
+        uiwait(warndlg({'Something went wrong:'; ' ';  report}, ...
+                        'Optimization failed!', ...
+                        'modal')); 
+        uiresume();
     end
 
     % reset all controls in the Main Window
@@ -171,7 +179,7 @@ function optimize_button(varargin)
     %% Process results
 
     % check if optimization was cancelled
-    if cancel_button_pressed
+    if cancel_button_pressed()
         % first write results to appdata
         setappdata(MainWin, 'calculation', calculation);
         % adjust progress bar and show warning
@@ -197,17 +205,17 @@ function optimize_button(varargin)
     else
         % first write results to appdata
         setappdata(MainWin, 'calculation', calculation);
-        
+
         % enable local search panel on the Algorithms tab
         toggle_panel(handles.tab(algorithms_tab).second_order_panel, 'reset');
-        
+
         progress_bar(1, 'Optimization completed sucessfully.')
-        
+
         % finish off this optimization
         callbacks('showtab', output_tab); % switch to output window
         generate_output('embedded');      % and display results
-        
-        progress_bar('');    
+
+        progress_bar('');
     end
 
 end % optimize button
@@ -467,7 +475,7 @@ function varargout = MGA(batch_or_normal)
 
         % call post-processor
         postprocessor_data = [];
-        if settings.postprocessing.check && ~cancel_button_pressed % only when requested
+        if settings.postprocessing.check && ~cancel_button_pressed() % only when requested
             progress_bar(0, 'Starting post-processor...');
             % run selected post-processor
             index = settings.postprocessing.post_processor;
@@ -577,7 +585,7 @@ function varargout = MGA(batch_or_normal)
 
             % The sequence was REALLY weird - all solutions turned out to
             % be INF or NAN
-            elseif (exitflag == -3) && ~cancel_button_pressed
+            elseif (exitflag == -3) && ~cancel_button_pressed()
                 % ask whether to optimize again
                 button_pressed = questdlg({...
                     'No solution was found to be possible even in theory.';
@@ -598,7 +606,7 @@ function varargout = MGA(batch_or_normal)
                 end
 
             % no feasible results
-            elseif ~feasible && ~cancel_button_pressed
+            elseif ~feasible && ~cancel_button_pressed()
                 % ask whether to optimize again
                 button_pressed = questdlg({'No feasible results were found.';
                     'What would you like to do?'}, 'No results found', ...
@@ -651,11 +659,15 @@ function varargout = MGA(batch_or_normal)
 
         % call post-processor
         postprocessor_data = [];
-        if settings.postprocessing.check && ~cancel_button_pressed % only when requested
+        if settings.postprocessing.check && ~cancel_button_pressed() % only when requested
             progress_bar(0, 'Starting post-processor...');
-            % ??? HERE
-            [postprocessor_data, solution, fval] = post_processor(...
-                @(X) objective_function(X, pc_params), solution, fval, LB, UB);
+            % TODO: continue here
+            [postprocessor_data, ...
+             solution, ...
+             fval] = post_processor(@(X) objective_function(X, pc_params),...
+                                    solution,...
+                                    fval,...
+                                    LB, UB);
         end
 
         %% process output
@@ -705,7 +717,7 @@ function varargout = MGA(batch_or_normal)
 
         % The sequence was REALLY weird - all solutions turned out to
         % be INF or NAN
-        elseif (exitflag == -3) && ~cancel_button_pressed
+        elseif (exitflag == -3) && ~cancel_button_pressed()
             % ask whether to optimize again
             button_pressed = questdlg({'No solution was found to be possible even in theory.';
                 'What would you like to do?'}, 'All solutions are impossible', ...
@@ -725,7 +737,7 @@ function varargout = MGA(batch_or_normal)
             end
 
             % no feasible results
-        elseif ~feasible && ~cancel_button_pressed
+        elseif ~feasible && ~cancel_button_pressed()
             % ask whether to optimize again
             button_pressed = questdlg({'No feasible results were found.';
                 'What would you like to do?'}, 'No results found', ...
@@ -1087,23 +1099,26 @@ function varargout = optimizer(obj, obj_params, seq)
 
         % only run local optimizer for single-objective optimizations,
         % and when the cancel button's not been pressed
-        if single_objective && ~cancel_button_pressed
+        if single_objective && ~cancel_button_pressed()
             % change scope
             obj_params.scope = 'local';
             % Check to see if we still have function evaluations left
             maxFunEvals = max(maxFunEvals - varargout{4}.funcCount, 2500);
             % if not, exit IF. otherwise, optimize locally
             if (maxFunEvals > 0)
-                % adjust progress bar
+
                 progress_bar(0.9, 'Running local optimizer...')
+
                 % set options
                 options = optimset(...
-                    'display'    , 'off',...            % make sure it's OFF
-                    'algorithm'  , 'active-set',...     % faster, but less robust (active-set gives NaN/inf often)
-                    'FunValCheck', 'on',...             % so, check this!
-                    'MaxFunEvals', maxFunEvals,...      % or [maxFunEvals] function evaluations
-                    'OutputFcn'  , @outputFcn);         % show intermediate masses in progress bar
+                    'display'    , 'off',...        % make sure it's OFF
+                    'algorithm'  , 'active-set',... % faster, but less robust (active-set gives NaN/inf often)
+                    'FunValCheck', 'on',...         % so, check this!
+                    'MaxFunEvals', maxFunEvals,...  % or [maxFunEvals] function evaluations
+                    'OutputFcn'  , @outputFcn);     % show intermediate masses in progress bar
+
                 options.ConstraintsInObjectiveFunction = 2;
+
                 % FMINCON
                 if settings.optimize.local.optimizer(1)
                     % active-set gives NaN/inf quite often
@@ -1125,11 +1140,13 @@ function varargout = optimizer(obj, obj_params, seq)
                                 solution, [],[], [],[], LB,UB, [], options);
                         end
                     end
+
                 % Constrained Nelder-Mead
                 elseif settings.optimize.local.optimizer(2)
                     options.Algorithm = 'fminsearch';
                     [solution, funval] = minimize(@(X)obj(X, obj_params),...
                         solution, [],[], [],[], LB,UB, [], options);
+
                 % Constrained quasi-Newton (L)BFGS
                 elseif settings.optimize.local.optimizer(3)
                     options.Algorithm = 'fminlbfgs';
@@ -1283,8 +1300,8 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
     % global routine, or in one of the post-processors, in which case the
     % largest computational burder (by far) is in the objective function,
     % and definitely not here.
-    function [c, ceq] = constraints_wrapper(X,varargin)
-        [ignored, c, ceq] = obj(X, obj_params);%#ok
+    function [c, ceq] = constraints_wrapper(X)
+        [ignored, c, ceq] = obj(X, obj_params); %#ok<ASGLU>
     end
 
     % This nested function serves as a general output function for
@@ -1296,14 +1313,16 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
 
         % only stop if the cancel button has been pressed. But stop
         % IMMEDIATELY, e.g., don't display values from the last iteration
-        stop = cancel_button_pressed;  if stop, return, end
+        stop = cancel_button_pressed();
+        if stop
+            return; end
 
-        % First correct the sleepy idiot who the output function sections
-        % of FMINSEARCH() and FMINCON()
+        % First correct the sleepy idiot who wrote the output function
+        % sections of FMINSEARCH() and FMINCON()
         if isfield(optimValues, 'funccount')
             % funCCCCCCCount (CAPITAL!)
             optimValues.funcCount = optimValues.funccount;
-            optimValues = rmfield(optimValues, 'funccount');
+            optimValues           = rmfield(optimValues, 'funccount');
         end
 
         % initialize

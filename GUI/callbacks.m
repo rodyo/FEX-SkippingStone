@@ -34,10 +34,9 @@
 %
 % See also main, modify_settings.
 
-function varargout = callbacks(funfcn, varargin)
+function varargout = callbacks(funfcn,...
+                               varargin)
 %{
-    last edited 19/Dec/2009
-
     NOTE: This function was written with code-folding of cells, comment
     blocks and functions in mind. If you have these disabled, it will be
     quite uncomfortable to read. You can change these options in
@@ -174,10 +173,9 @@ function varargout = callbacks(funfcn, varargin)
         % NOTE: the about box will not run when the logo is missing,
         % moved or renamed. Use a TRY-CATCH-END block to prevent this
         try
-            % read logo
             logo = imread([environment.pathing.datadir, filesep, 'logo.png']);
-            % draw axes
             logo_axes = axes('Position', [.25 .15 .5 .14]);
+
             % set all whitish-pixels to background color
             bgcolor = environment.colors.window_bgcolor;
             transpinds = (logo(:, :, 1) > 250) & (logo(:, :, 2) > 250) & (logo(:, :, 3) > 250);
@@ -185,9 +183,11 @@ function varargout = callbacks(funfcn, varargin)
             logo2 = logo(:, :, 2); logo2(transpinds) = 255*bgcolor(2);
             logo3 = logo(:, :, 3); logo3(transpinds) = 255*bgcolor(3);
             logo = cat(3, logo1, logo2, logo3);
+
             % draw logo
             imagesc(logo, 'Parent', logo_axes);
             axis off
+
         catch ME,ME; %#ok<VUNUS>
             warndlg(ME.message, 'Logo not found');
         end % draw logo
@@ -195,35 +195,47 @@ function varargout = callbacks(funfcn, varargin)
     end % about
 
     % re-load the default settings
-    function load_defaults(varargin)%#ok
+    function load_defaults(varargin) %#ok<VANUS,DEFNU>
+
         % ask to save the current settings
         if strcmpi(get(MainWin, 'UserData'), 'dirty')
             saveyn = questdlg('Do you want to save the current settings?', ...
-                     'Save current settings', 'Yes', 'No', 'Yes');
+                              'Save current settings',...
+                              'Yes', 'No',...
+                              'Yes');
             if strcmpi(saveyn, 'yes') && save_settings
                 set(MainWin, 'UserData', 'clean'), end
         end
+
         % reload the defaults values
-        [environment, model, constants, calculation, settings] = ...
-            modify_settings('default_values', ...
-            [fileparts(mfilename('fullpath')), filesep, '..']);
+        [environment,...
+         model,...
+         constants,...
+         calculation,...
+         settings] = modify_settings('default_values', ...
+                                    [fileparts(mfilename('fullpath')), filesep, '..']);
+
         setappdata(MainWin, 'settings'   , settings   );
         setappdata(MainWin, 'handles'    , handles    );
         setappdata(MainWin, 'environment', environment);
         setappdata(MainWin, 'model'      , model      );
         setappdata(MainWin, 'constants'  , constants  );
         setappdata(MainWin, 'calculation', calculation);
+
         % and change all settings accordingly
         modify_settings('change_all_settings');
-        % hide the panel made by the postprocessor
+
+        % TODO: (GUI code in non-GUI function) hide the panel made by the postprocessor
         if isfield(at.post_processing, 'additional_controls') && ...
            isfield(at.post_processing.additional_controls, 'panel')
             set(at.post_processing.additional_controls.panel(:), 'visible', 'off');
         end
+
     end % load defaults
 
     % load settings
-    function load_settings(varargin)%#ok
+    function load_settings(varargin) %#ok<VANUS,DEFNU>
+
         [settings_file, settings_path] = uigetfile({'*.cfg'}, ...
             ['Load ', environment.program_name, ' configuration settings']);
         % if cancel was not pressed
@@ -232,45 +244,60 @@ function varargout = callbacks(funfcn, varargin)
             % if so, ask the user to save them
             if strcmpi(get(MainWin, 'UserData'), 'dirty')
                 answer = questdlg({'Results from previous optimization have not been saved!';
-                    'These will be lost when loading new settings.';
-                    'Do you first want to save your results?'}, ...
-                    'Unsaved optimization results', 'Yes', 'No', 'Yes');
-                if strcmpi(answer, 'yes'), save_results; end
+                                   'These will be lost when loading new settings.';
+                                   'Do you first want to save your results?'}, ...
+                                   'Unsaved optimization results',...
+                                   'Yes', 'No',...
+                                   'Yes');
+
+                if strcmpi(answer, 'yes')
+                    save_results(); end
             end
+
             % load file into workspace
             try
                 new_settings = load([settings_path, settings_file], ...
-                    'settings', '-MAT');
+                                    'settings', '-MAT');
             catch ME,ME; %#ok<VUNUS>
-                errordlg({'Unable to load file:'; ME.message}, 'Load failed')
+                errordlg({'Unable to load file:'; ME.message},...
+                        'Load failed')
                 return
             end
+
             % check if all parameters were actually saved in this file
             if ~isfield(new_settings, 'settings')
                 errordlg({'No program settings found in file.';
                     'Please select a different file.'},...
                     'No settings found');
             else
-                % assign new data
                 settings = new_settings.settings;
+
                 % save HERE (otherwise, we can't use change_all_settings)
                 setappdata(MainWin, 'settings', settings);
+
                 % re-assign all values to all input fields
                 modify_settings('change_all_settings');
+
             end
         end
-    end % load settings
+    end % function load settings
 
     % save settings
     function success = save_settings(varargin) %#ok<VANUS>
-        [settings_file, settings_path] = uiputfile({'*.cfg'}, ...
-            ['Save ', environment.program_name, ' configuration settings']);
+
+        [settings_file, ...
+         settings_path] = uiputfile({'*.cfg'}, ...
+                                    ['Save ', environment.program_name, ' configuration settings']);
+
         % if cancel was not pressed
         if ischar(settings_file) && ischar(settings_path)
+
             % save the settings
             try
-                save([settings_path, settings_file], 'settings', '-MAT');
+                save([settings_path, settings_file],...
+                     'settings', '-MAT');
                 success = true;
+
             catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to save file:'; ME.message}, 'Save failed')
                 success = false;
@@ -278,32 +305,40 @@ function varargout = callbacks(funfcn, varargin)
         else
             success = false;
         end
-    end % save settings
+    end % function save settings
 
     % load results
-    function load_results(varargin)%#ok
-        [results_file, results_path] = uigetfile({'*.res'}, ...
-            ['Load ', environment.program_name, ' calculation results']);
+    function load_results(varargin) %#ok<VANUS,DEFNU>
+        [results_file,...
+         results_path] = uigetfile({'*.res'}, ...
+                                   ['Load ', environment.program_name, ' calculation results']);
+
         % if cancel was not pressed
         if ischar(results_file)
             % check if results are unsaved
             % if so, ask the user to save them
             if strcmpi(get(MainWin, 'UserData'), 'dirty')
                 answer = questdlg({'Results from previous optimization have not been saved!';
-                    'These will be lost when loading other results.';
-                    'Do you first want to save your results?'}, ...
-                    'Unsaved optimization results', 'Save', 'Discard', 'Save');
-                if strcmpi(answer, 'Save'), save_results; end
+                                   'These will be lost when loading other results.';
+                                   'Do you first want to save your results?'}, ...
+                                   'Unsaved optimization results',...
+                                   'Save', 'Discard',...
+                                   'Save');
+
+                if strcmpi(answer, 'Save')
+                    save_results(); end
             end
+
             % load file into workspace
             try
                 progress_bar(0, 'Loading results...');
                 new_calculation = load([results_path, results_file], ...
-                    'calculation', '-MAT');
+                                       'calculation', '-MAT');
             catch ME,ME; %#ok<VUNUS>
                 errordlg({'Unable to load file:'; ME.message}, 'Load failed')
                 return
             end
+
             % check if all parameters were actually saved in this file
             if ~isfield(new_calculation, 'calculation')
                 progress_bar(0, 'No results found.');
@@ -326,53 +361,69 @@ function varargout = callbacks(funfcn, varargin)
 
     % save results
     function save_results(varargin) %#ok<VANUS>
+
         % first some checks
         if isempty(calculation.results.first_order.best.solution) && ...
            isempty(calculation.results.second_order.best.solution)
             errordlg({'There are no results to save yet. You should run an ';
-                'optimization before saving its results.'}, 'Nothing to save');
-            return
+                      'optimization before saving its results.'},...
+                     'Nothing to save');
+            return;
         end
+
         % ask where to save results
         progress_bar(0, 'Saving results...')
-        [results_file, results_path] = uiputfile({'*.res'}, ...
-            ['Save ', environment.program_name, ' optimization results']);
+        [results_file,...
+         results_path] = uiputfile({'*.res'}, ...
+                                   ['Save ', environment.program_name, ' optimization results']);
+
         % if cancel was not pressed
         if ischar(results_file) && ischar(results_path)
             % save the settings
             try
-                save([results_path, results_file], 'calculation', '-MAT');
+                save([results_path, results_file],...
+                     'calculation', '-MAT');
                 set(MainWin, 'UserData', 'clean');
             catch ME,ME; %#ok<VUNUS>
-                errordlg({'Unable to save file:'; ME.message}, 'Save failed')
+                errordlg({'Unable to save file:'; ME.message},...
+                        'Save failed')
             end
         end
+
         progress_bar('')
+
     end % save results
 
     % export results
-    function export_results(type, varargin)%#ok
+    function export_results(type, varargin) %#ok<VANUS,DEFNU>
+
         % first some checks
         if isempty(calculation.results.first_order.best.solution) && ...
-                isempty(calculation.results.second_order.best.solution)
+           isempty(calculation.results.second_order.best.solution)
             errordlg({'There are no results to save yet. You should run an ';
-                'optimization before saving its results.'}, 'Nothing to save');
-            return
+                      'optimization before saving its results.'},...
+                     'Nothing to save');
+            return;
         end
+
         % ask where to save results
         progress_bar(0, 'Saving results...')
-        [results_file, results_path] = uiputfile({['*.' type]}, ...
-            ['Export ', environment.program_name, ' optimization results']);
+        [results_file,...
+         results_path] = uiputfile({['*.' type]}, ...
+                                   ['Export ', environment.program_name, ' optimization results']);
+
         % if cancel was not pressed
         if ischar(results_file) && ischar(results_path)
 
             % detect type of export
             switch lower(type)
+
                 case {'tab' 'csv'}
                     % set delimiter
                     if strcmp(type, 'tab'), delim = '\t';  %#ok<NASGU>
                     else delim = ',';                      %#ok<NASGU>
                     end
+
                     % try to DLMwrite "calculation"
                     try
                         % TODO: dlmwrite() can't write structures...
@@ -382,47 +433,57 @@ function varargout = callbacks(funfcn, varargin)
                         error(' '); %#ok<ERTAG>
                         %dlmwrite([results_path,results_file], calculation, ...
                         %    'delimiter', delim);
-                    catch ME %#ok<MUCTH,NASGU>
+
+                    catch ME
                         % NOTHING YET..
-                        not_yet_done;
+                        not_yet_done();
                     end
+
                 case 'stk'
                     % Sorry, not yet...
-                    not_yet_done;
+                    not_yet_done();
+
                 otherwise
                     % shouldn't ever happen, but oh well...
                     errordlg(['Unknown filetype for export: ''' type '''.'],...
-                        'Unknown export type');
+                              'Unknown export type');
             end
         end
     end
 
     % import results
-    function import_results(type, varargin)%#ok
+    function import_results(type, varargin) %#ok<VANUS,DEFNU>
 
-        [results_file, results_path] = uigetfile({['*.' type]}, ...
-            ['Import ',...
-            environment.program_name,...
-            ' calculation results']);         %#ok<NASGU>
+        [results_file, ...
+         results_path] = uigetfile({['*.' type]}, ...
+                                   ['Import ' environment.program_name, ' calculation results']);
 
         % if cancel was not pressed
         if ischar(results_file)
+
             % check if results are unsaved
             % if so, ask the user to save them
             if strcmpi(get(MainWin, 'UserData'), 'dirty')
                 answer = questdlg({'Results from previous optimization have not been saved!';
-                    'These will be lost when loading other results.';
-                    'Do you first want to save your results?'}, ...
-                    'Unsaved optimization results', 'Save', 'Discard', 'Save');
-                if strcmpi(answer, 'Save'), save_results; end
+                                   'These will be lost when loading other results.';
+                                   'Do you first want to save your results?'}, ...
+                                   'Unsaved optimization results',...
+                                   'Save', 'Discard',...
+                                   'Save');
+
+                if strcmpi(answer, 'Save')
+                    save_results(); end
             end
+
             % detect type of import
             switch lower(type)
+
                 case {'tab' ;'csv'}
                     % set delimiter
                     if strcmp(type, 'tab'), delim = '\t';  %#ok<NASGU>
                     else delim = ',';                      %#ok<NASGU>
                     end
+
                     % try to DLMwrite "calculation"
                     try
                         % TODO: dlmread() can't read structures...
@@ -431,26 +492,29 @@ function varargout = callbacks(funfcn, varargin)
                         % prepended label (see export_results):
                         error(' '); %#ok<ERTAG>
                         %dlmread([results_path,results_file], delim);
-                    catch ME %#ok<MUCTH,NASGU>
+                    catch ME
                         % NOTHING YET..
-                        not_yet_done;
+                        not_yet_done();
                     end
+
                 case 'stk'
                     % Sorry, not yet...
-                    not_yet_done;
+                    not_yet_done();
+
                 otherwise
                     % shouldn't ever happen, but oh well...
                     errordlg(['Unknown filetype for import: ''' type '''.'],...
-                        'Unknown import type');
+                             'Unknown import type');
             end
         end
     end
 
     %% Callbacks from launch panel
+    % ==========================================================================
 
-   % enable/disable SEP/NEP options
-    function change_power_supply(varargin)%#ok
-        
+    % enable/disable SEP/NEP options
+    function change_power_supply(varargin) %#ok<DEFNU>
+
         % enable/disable appropriate controls
         switch varargin{2}.NewValue
             case lt.power_radio(1)
@@ -460,7 +524,7 @@ function varargout = callbacks(funfcn, varargin)
                 set(lt.SEP, 'enable', 'on');
                 % disable or enable the jettison-mass box
                 enable_jettison();
-                
+
             case lt.power_radio(2)
                 % disable NEP-options
                 set(lt.NEP, 'enable', 'on');
@@ -473,58 +537,61 @@ function varargout = callbacks(funfcn, varargin)
 
     % enable/disable Panel mass edit box
     function enable_jettison(varargin) %#ok<VANUS>
-        
+
         % enable/disable appropriate controls
         on_off  = {'off' 'on'};
         checked = get(lt.SEP(7), 'value');
         on_off  = on_off{checked+1};
-        
+
         % Sequence tab; jettison radio buttons
         jettison_radios = handles.tab(sequence_tab).GAM.jettison;
-        
-        if checked           
+
+        if checked
             GAM_bodies      = get(handles.tab(sequence_tab).GAM.body, 'string');
-            GAM_selections  = get(handles.tab(sequence_tab).GAM.body, 'value');        
+            GAM_selections  = get(handles.tab(sequence_tab).GAM.body, 'value');
             GAM_selected    = cellfun(@(x,y) ~strcmp(x{y}, '(none)'), ...
                                       GAM_bodies, GAM_selections);
-            radio_enable    = 1:min(4, sum(GAM_selected)+1);
-            jettison_radios = jettison_radios(radio_enable);        
+            radio_enable    = 1:min(4, sum(GAM_selected));
+            jettison_radios = jettison_radios(radio_enable);
         end
-                     
+
         set([lt.Jettison(:); jettison_radios(:)],...
-            'enable', on_off);         
+            'enable', on_off);
     end
 
     % switch engine type
-    function engine(varargin)%#ok
-        
+    function engine(varargin) %#ok<DEFNU>
+
         have_ionengine = false;
-        
+
         % change the contents and visibility of the edit-boxes
         switch varargin{2}.NewValue
             case lt.propulsion(1) % High-thrust
-                
+
                 % enable/disaple appropriate engine controls
                 set([lt.Sail lt.Ion], 'enable','off');
                 set([lt.High lt.Isp], 'enable','on');
-                
+
                 % also change Isp-seting
                 set(lt.High(2),...
-                    'string'    , settings.propulsion.high_thrust.Isp,...
-                    'callback'  , @(varargin) modify_settings('change_single_setting', ...
-                        'propulsion.high_thrust.Isp', [], varargin{:}));
-                    
+                    'string'  , settings.propulsion.high_thrust.Isp,...
+                    'callback', @(varargin)...
+                            modify_settings('change_single_setting', ...
+                                            'propulsion.high_thrust.Isp',...
+                                            [], ...
+                                            varargin{:}));
+
                 % change the different Isp
                 captureIsp();
-                
+
             case lt.propulsion(2) % Low-thrust: Ion
-                
+
                 have_ionengine = true;
-                
+
                 % enable/disaple appropriate controls
                 set(lt.Sail,'enable','off');
                 set([lt.High lt.Ion lt.Isp], 'enable','on');
-                 
+
                 % also change Isp-seting
                 set(lt.High(2),...
                     'string'    , settings.propulsion.ion_engine.Isp,...
@@ -535,17 +602,17 @@ function varargout = callbacks(funfcn, varargin)
                                     varargin{:}));
                 % change the different Isp
                 captureIsp();
-                
+
             case lt.propulsion(3) % Low-thrust: Sail
                 set(lt.Sail,'enable','on');
-                set([lt.High lt.Ion	lt.Isp],'enable','off');
+                set([lt.High lt.Ion lt.Isp],'enable','off');
         end
-        
-        % also adjust dependent controls 
+
+        % also adjust dependent controls
         set_propulsiondependent_GAM_controls();
         set_propulsiondependent_pwr_controls(have_ionengine);
         set_propulsiondependent_algo_controls(have_ionengine);
-        
+
     end
 
     % enable/disable capture Isp
@@ -560,12 +627,16 @@ function varargout = callbacks(funfcn, varargin)
         end
     end
 
-    %% Callback from sequence panel
+
+    %% Callbacks from sequence panel
+    % ==========================================================================
 
     % Check & change dates for the launch window
-    function check_dates(varargin)%#ok
+    function check_dates(varargin) %#ok<DEFNU>
+
         % rename the value that's changed
         changed_value = varargin{1};
+
         % If one of the years OR one of the months has changed:
         % check if month is february. If so, check if year
         % is leap year. If so, assign 29 days, otherwise 28 days.
@@ -573,47 +644,56 @@ function varargout = callbacks(funfcn, varargin)
             if any(changed_value == st.launch_window.year(ii) | ...
                    changed_value == st.launch_window.month(ii))
                 if get(st.launch_window.month(ii), 'Value') == 2
+
                     initial_year = get(st.launch_window.year(ii), 'string');
                     initial_year = str2double(initial_year(1, :));
+
                     year = get(st.launch_window.year(ii), 'Value') + initial_year - 1;
                     if mod(year, 4) == 0
                         set(st.launch_window.day(ii), 'String', 1:29);
                     else
                         set(st.launch_window.day(ii), 'String', 1:28);
                     end
-                    return % if february, return
+
+                    return; % if february, return
                 end
             end
         end
+
         % If one of the months has changed:
         % Assign either 30 or 31 days to days-popup,
         % depending on choice of month
         for ii = 1:2
             if changed_value == st.launch_window.month(ii)
+
                 % months with 31 days
                 if any(get(st.launch_window.month(ii), 'Value') == [1, 3, 5, 7, 8, 10, 12])
                     set(st.launch_window.day(ii), 'String', 1:31);
-                    return
+                    return;
                 end
+
                 % months with 30 days
                 if any(get(st.launch_window.month(ii), 'Value') == [4, 6, 9, 11])
                     % don't forget to put the cursor on the last position
                     if get(st.launch_window.day(ii) , 'Value') == 31
-                        set(st.launch_window.day(ii), 'Value', 30);
-                    end
+                        set(st.launch_window.day(ii), 'Value', 30); end
                     % and reset the day
                     set(st.launch_window.day(ii), 'String', 1:30);
                 end
             end
         end
+
     end
 
     % enable or disable swingby's according to user's selection
     function switch_bodies(which_GAM_body, varargin) %#ok<VANUS>
+
         % and what body was selected
         what_body = get(st.GAM.body(which_GAM_body), 'value') - 1;
+
         % if not 'none' was selected
         if (what_body ~= 0)
+
             % enable all of its controls
             if (which_GAM_body ~= numel(st.GAM.body))
                 set(st.GAM.body(which_GAM_body+1), 'enable', 'on');
@@ -621,36 +701,50 @@ function varargout = callbacks(funfcn, varargin)
                 % selected bodies back on
                 switch_bodies(which_GAM_body+1);
             end
-            structfun(@(x) set(x(which_GAM_body), 'enable', 'on'), st.GAM)
+
+            structfun(@(x) set(x(which_GAM_body),...
+                               'enable', 'on'),...
+                     st.GAM);
+
             % disable those that are not applicable for the current
             % propulsion or GAM-type settings
             set_propulsiondependent_GAM_controls();
             change_GAM_type(which_GAM_body);
+
             % change the minimum altitude
             set(st.GAM.minalt(which_GAM_body), 'string', ...
                 settings.GAM.min_altitude(what_body, which_GAM_body));
             change_minimum_altitude(which_GAM_body, 'nocheck');
+
             % change UB/LB to current setting
             set(st.GAM.TOF_LB(which_GAM_body), 'string', ...
                 settings.GAM.TOF_LB(what_body+1,which_GAM_body));
             set(st.GAM.TOF_UB(which_GAM_body), 'string', ...
                 settings.GAM.TOF_UB(what_body+1,which_GAM_body));
+
         % otherwise, disable all following controls
         else
-            structfun(@(x) set(x(which_GAM_body:end), 'enable', 'off'), st.GAM);
+            structfun(@(x) set(x(which_GAM_body:end),...
+                               'enable', 'off'),...
+                      st.GAM);
+
             set([st.GAM.body(which_GAM_body), ...
-                 st.GAM.number(which_GAM_body)], 'enable', 'on')
+                 st.GAM.number(which_GAM_body)],...
+                 'enable', 'on');
         end
     end
 
     % change the LB/UB on time of flight
-    function change_TOF(index, varargin)%#ok
+    function change_TOF(index, varargin)%#ok<VANUS,DEFNU>
+
         % get new settings
         new_TOF_LB = get(st.GAM.TOF_LB(index), 'string');
         new_TOF_UB = get(st.GAM.TOF_UB(index), 'string');
+
         %^ check values
         good = modify_settings('check_value', str2double(new_TOF_LB)) ||...
                modify_settings('check_value', str2double(new_TOF_UB));
+
        if good
            % currently selected body
            current_body = get(st.GAM.body(index), 'value');
@@ -662,9 +756,11 @@ function varargout = callbacks(funfcn, varargin)
 
     % change the LB/UB on time of flight
     function change_TOF_target(varargin)%#ok
+
         % get new settings
         new_TOF_LB = get(st.target.TOF_LB, 'string');
         new_TOF_UB = get(st.target.TOF_UB, 'string');
+
         % check values
         good = modify_settings('check_value', str2double(new_TOF_LB)) ||...
                modify_settings('check_value', str2double(new_TOF_UB));
@@ -680,20 +776,20 @@ function varargout = callbacks(funfcn, varargin)
     % change the minimum altitudes (a neccessary exception to
     % MODIFY_SETTINGS('change_single_setting'))
     function change_minimum_altitude(which_one, check, varargin) %#ok<VANUS>
-        
+
         % get currently selected body
         current_body = get(st.GAM.body(which_one), 'value') - 1; % remove 'none'
-        
+
         % get the new value
         new_value = get(st.GAM.minalt(which_one), 'string');
-        
+
         % check the inserted value (or not)
         if strcmpi(check, 'check')
             good = modify_settings('check_value', str2double(new_value));
         else
             good = true;
         end
-        
+
         % if it's good, insert it into its proper index
         if good
             settings.GAM.min_altitude(current_body, which_one) = str2double(new_value);
@@ -703,84 +799,88 @@ function varargout = callbacks(funfcn, varargin)
                 settings.GAM.min_altitude(current_body, which_one));
         end
     end
-    
+
     % Toggle power panel based on engine setting
     function set_propulsiondependent_pwr_controls(have_ion)
-        
+
         pnl = handles.tab(launch_tab).powersupply_panel;
-        
+
         if have_ion
             toggle_panel(pnl, 'reset');
+
             % This deals with the radios
             enable_jettison();
-            
+
         else
             toggle_panel(pnl, 'disable');
-            
+
             % The radios on the GAM tab are also coupled
             jettison_radios = handles.tab(sequence_tab).GAM.jettison;
             set(jettison_radios(:),...
-                'enable', 'off');            
+                'enable', 'off');
         end
-        
+
     end
-    
+
 
     % Toggle algorithm panel based on engine setting
     function set_propulsiondependent_algo_controls(have_ion)
-        
+
         pnl = [handles.tab(algorithms_tab).LowThrustApproximationGroup
                handles.tab(algorithms_tab).second_order_panel_low_thrust_method_group];
-        
+
         if have_ion
             toggle_panel(pnl, 'reset');
         else
             toggle_panel(pnl, 'disable');
         end
     end
-    
+
     % disable some GAM-controls, depending on
     % the selected propulsion type
     function set_propulsiondependent_GAM_controls()
-        
+
         % get the index for the last selected body
         index = sum(cellfun(@(x) strcmpi(x,'on'), ...
                     get(st.GAM.body, 'enable'))) - 1;
-                
+
         % get the names of the selected bodies
         selected_bodies = get(st.GAM.body(1), 'string');
         values          = get(st.GAM.body, 'value');
         selected_bodies = {selected_bodies{[values{:}].'}}.';%#ok
-        
+
         % if any of the names of the selected bodies is equal to that of the
         % model's central body, set its GAM-type to "central body flyby"
         centrals = strcmpi(selected_bodies, model.CentralBody{1});
         set(st.GAM.type(centrals), ...
             'string', {'Central body flyby'},...
             'value' , 1);
-        
-        % also change the corresponding setting        
+
+        % also change the corresponding setting
         settings.GAM.type(centrals) = {'Central body flyby'};
-        
+
         % get the strings for the other bodies
         strings = get(st.GAM.type, 'string');
-        
+
         % find those that need to be modified
         noncell_inds = ~cellfun(@iscell, strings);
         strings(noncell_inds) = {strings(noncell_inds)};
         numel_strings = cellfun(@numel, strings);
-        
+
         % if low thrust has been selected
         if any(~centrals)
             if settings.propulsion.selected(2) || settings.propulsion.selected(3)
+
                 % disable DSM and Delta-V, and max. total DeltaV boxes
                 set([st.GAM.DSM, ...
-                    st.target.DSM, ...
-                    st.GAM.maxDeltaV], 'enable', 'off')
+                     st.target.DSM, ...
+                     st.GAM.maxDeltaV], ...
+                     'enable', 'off');
                 set([st.MaxTotalDeltaV;
                      st.GAM.maxDeltaV(:)], ...
                     'string', 0,...
                     'enable', 'off');
+
                 % remove 'powered' from the available types
                 % (only those that need to be modified)
                 mod_strings = numel_strings == 3;
@@ -789,10 +889,12 @@ function varargout = callbacks(funfcn, varargin)
                 aerogravs = cellfun(@(x)x==3, get(st.GAM.type, 'value'));
                 set(st.GAM.type(mod_strings & ~centrals &  aerogravs), 'value', 2);
                 set(st.GAM.type(mod_strings & ~centrals & ~aerogravs), 'value', 1);
+
             % if high-thrust is selected
             else
                 % enable target DSM box
                 set(st.target.DSM, 'enable', 'on');
+
                 % enable maximum total Delta-V, and set it to the max.
                 set(st.MaxTotalDeltaV, 'enable', 'on');
                 current_Isp = settings.propulsion.high_thrust.Isp;
@@ -801,6 +903,7 @@ function varargout = callbacks(funfcn, varargin)
                 max_DV_possible = tsjiolkovsky([], current_Isp, current_M0, current_Me);
                 set(st.MaxTotalDeltaV, 'string', max_DV_possible);
                 settings.GAM.constraints.max_DV = max_DV_possible;
+
                 % re-insert 'powered' in the available types
                 % (only those that need to be modified)
                 mod_strings = numel_strings <= 2;
@@ -813,7 +916,7 @@ function varargout = callbacks(funfcn, varargin)
                     'value', 2);
             end
         end
-        
+
         % enable DSM and Delta-V boxes
         for ii = 1:index
             change_GAM_type(ii); end
@@ -822,26 +925,37 @@ function varargout = callbacks(funfcn, varargin)
     % disable L/D and Max.DV-controls, depending on the
     % corresponding GAM-type setting
     function change_GAM_type(number, varargin) %#ok<VANUS>
+
         % get the new setting
         new_type = get(st.GAM.type(number), 'string');
-        if ~iscell(new_type), new_type = {new_type}; end
+        if ~iscell(new_type)
+            new_type = {new_type}; end
         new_type = new_type{get(st.GAM.type(number), 'value')};
+
         % change the setting
         settings.GAM.type(number) = {new_type};
+
         % enable/disable L/D and max. DV edit boxes accordingly
         if strcmpi(new_type, 'un-powered')
-            set(st.GAM.LoverD(number), 'enable', 'off');
+            set(st.GAM.LoverD(number),...
+                'enable', 'off');
             set(st.GAM.maxDeltaV(number), ...
-                    'enable', 'off',...
-                    'string', 0); % DON'T change the setting
+                'enable', 'off',...
+                'string', 0); % DON'T change the setting
+
         elseif strcmpi(new_type, 'powered')
-            set(st.GAM.DSM(number), 'enable', 'on');
-            set(st.GAM.LoverD(number), 'enable', 'off');
+            set(st.GAM.DSM(number),...
+                'enable', 'on');
+            set(st.GAM.LoverD(number),...
+                'enable', 'off');
             set(st.GAM.maxDeltaV(number), ...
                     'enable', 'on',...
                     'string', settings.GAM.max_DV(number));
+
         elseif strcmpi(new_type, 'aerograv')
-            set(st.GAM.LoverD(number), 'enable', 'on');
+            set(st.GAM.LoverD(number), ...
+                'enable', 'on');
+
             % only for high-thrust
             prop_setting = get(propulsion, 'value');
             if prop_setting{1}
@@ -854,19 +968,21 @@ function varargout = callbacks(funfcn, varargin)
 
     % maximum Delta-V may not exceed what's possible
     % from Tsjiolkovskii's equation
-    function max_total_DV_check(warn_user, varargin)%#ok
+    function max_total_DV_check(warn_user, varargin)%#ok<DEFNU,VANUS>
+
         % extract new value
         New_DV = str2double(get(st.MaxTotalDeltaV, 'string'));
+
         % retreive the current settings for launch- and
         % payload mass and Isp
         current_Isp = settings.propulsion.high_thrust.Isp;
         current_M0  = settings.launch.launch_mass;
         current_Me  = settings.launch.payload_mass;
+
         % the value may not be greater than what is allowable by
         % Tsjiolkovskii's equation
         max_DV_possible = tsjiolkovsky([], current_Isp, current_M0, current_Me);
         if (New_DV > max_DV_possible);
-            % warn the user (or not)
             if strcmpi(warn_user, 'warn_user')
                 warndlg({'This value for the maximum Delta-V is not possible according';
                          'to the selected values for Isp, launch and payload mass.';
@@ -874,24 +990,27 @@ function varargout = callbacks(funfcn, varargin)
                          'The maximum possible value will be inserted instead.'},...
                          'Max. Delta-V not possible')
             end
-            % set the maximum value
+
             set(st.MaxTotalDeltaV, 'string', max_DV_possible);
-            % also change the setting
             settings.GAM.constraints.max_DV = max_DV_possible;
         end
     end
 
     % target body might be "Choose minor planet..."
-    function target_body(varargin)%#ok
+    % TODO: this is plugin code; move to plugin mechanism
+    function target_body(varargin)%#ok<DEFNU,VANUS>
+
         % get the selected string
         strings = get(st.target.body, 'string');
+
         % if it is "Choose Minor Planet"
         if strcmpi(strings{get(st.target.body, 'value')},...
-                'Choose Minor Planet...')
-            % run the function (the same one as the button)
-            MP_target_body;
+                  'Choose Minor Planet...')
 
-            % ??? REMOVE WHEN IMPLEMENTED
+            % run the function (the same one as the button)
+            MP_target_body();
+
+            % TODO: REMOVE WHEN IMPLEMENTED
             % ??? reset the field (this option is not yet available)
             set(st.target.body, 'value', 1)
             % ??? REMOVE WHEN IMPLEMENTED
@@ -907,10 +1026,11 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % choose a minor planet as target
+    % TODO: this is plugin code; move to plugin mechanism
     function MP_target_body(varargin) %#ok<VANUS>
 
         % nothing yet...
-        not_yet_done;
+        not_yet_done();
 
         % general function layout:
         % (1) construct basic GUI
@@ -922,9 +1042,11 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % switch model
-    function model_selection(varargin)%#ok
+    function model_selection(varargin)%#ok<DEFNU>
+
         % switch and load the new model
         switch varargin{2}.NewValue
+
             case st.selected_model(1)  % Solar system
                 % load Solar system parameters
                 model = Solar_system_parameters(model);
@@ -937,7 +1059,7 @@ function varargout = callbacks(funfcn, varargin)
                 % % load mission-specific data for the Solar system
                 % model = user_Jovian_system_parameters(model);
                 %???not impplemented yet
-                not_yet_done;
+                not_yet_done();
                 set(varargin{1}, 'SelectedObject', varargin{2}.OldValue)
 
             case st.selected_model(3)  % Julian system
@@ -948,7 +1070,7 @@ function varargout = callbacks(funfcn, varargin)
                 % % change all settings
                 % change_all_settings;
                 %???not impplemented yet
-                not_yet_done;
+                not_yet_done();
                 set(varargin{1}, 'SelectedObject', varargin{2}.OldValue)
 
         end
@@ -960,16 +1082,16 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % load the MP-names if the check box is checked.
-    function MPs_check(uncheck, varargin)%#ok
+    % TODO: this is plugin code; move to plugin mechanism
+    function MPs_check(uncheck, varargin)%#ok<DEFNU,VANUS>
+
         % if [uncheck] is true, only force the box to be unchecked
         if uncheck
-            % disable checkbox
             set(st.selected_model(4), 'value', 0);
-            % also adjust setting
             settings.model(4) = false;
-            % and return
-            return
+            return;
         end
+
         % otherwise, take action according to current status of the checkbox
         if get(st.selected_model(4), 'Value')
             % enable updatebutton
@@ -987,6 +1109,7 @@ function varargout = callbacks(funfcn, varargin)
             settings.model(4) = true;
             % reset all controls
             reset_all(objects, states);
+
         else
             % disable updatebutton
             set(st.UpdateMPButton, 'enable', 'off')
@@ -999,11 +1122,11 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % load the user database upon checking the checkbox
-    function USR_DB_check(varargin)%#ok
+    function USR_DB_check(varargin)%#ok<DEFNU>
         % ??? NOT YET DONE
         not_yet_done;
         set(varargin{1}, 'value', 0);
-        return
+        return;
         % preliminary function
 %         if get(varargin{1}, 'Value')
 %             % enable loadbutton
@@ -1017,6 +1140,7 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % update the MPCORB minor planet database
+    % TODO: this is plugin code; move to plugin mechanism
     function update_minor_planets_data(ask, varargin)%#ok
 
         % do we need to ask the user for confirmation?
@@ -1113,7 +1237,6 @@ function varargout = callbacks(funfcn, varargin)
 
         end
 
-        % update progress bar
         progress_bar(1, 'MP-model sucessfully updated.'); pause(0.5)
 
         % also reload the names
@@ -1126,7 +1249,8 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % do BATCH-optimization (upon checking the box)
-    function batch_optimization_check(varargin)%#ok
+    function batch_optimization_check(varargin)%#ok<DEFNU>
+
         % enable/disable the button, and perform appropriate actions
         if get(varargin{1}, 'value')
             set(st.BatchOptimizeButton, 'enable','on');
@@ -1136,12 +1260,14 @@ function varargout = callbacks(funfcn, varargin)
             set(varargin{1}, 'UserData', {GAM_objects, GAM_states});
             % run BATCH-optimization function
             batch_optimization_wrapper(varargin{:});
+
         else
             set(st.BatchOptimizeButton, 'enable','off');
             % re-enable all sequence panels
             objstates = get(varargin{1}, 'UserData');
             reset_all(objstates{1}, objstates{2});
         end
+
     end % batch_optimization_check
 
     % wrapper function to call the BATCH-optimization window
@@ -1165,18 +1291,18 @@ function varargout = callbacks(funfcn, varargin)
     end % batch_optimization_wrapper
 
     %% Callbacks for arrival & postprocessing tab
+    % ==========================================================================
 
     %
-    function switch_arrival_type(varargin) %#ok
+    function switch_arrival_type(varargin) %#ok<DEFNU>
         selected = get(varargin{1}, 'Value');
         set([at.arrival_constraints{:}], 'Visible', 'off');
         set(at.arrival_constraints{selected}, 'Visible', 'on');
-
     end
 
     % enable or disable load / parameters buttons when
     % user-costfunction is selected
-    function arrival_costfunction_check(varargin)%#ok
+    function arrival_costfunction_check(varargin)%#ok<DEFNU>
         if get(varargin{1}, 'value')
             set(at.usr_costfun_arrival(2:end), 'enable', 'on')
         else
@@ -1185,7 +1311,8 @@ function varargout = callbacks(funfcn, varargin)
     end
 
     % enable post-processing
-    function enable_postprocessing(varargin)%#ok
+    function enable_postprocessing(varargin)%#ok<DEFNU>
+
         if get(varargin{1}, 'value')
             set(at.post_processing.post_processor, 'enable', 'on');
             % enable any additional GUI-components
@@ -1193,6 +1320,7 @@ function varargout = callbacks(funfcn, varargin)
                isfield(at.post_processing.additional_controls, 'panel')
                 set(at.post_processing.additional_controls.panel(:), 'visible', 'on');
             end
+
         else
             set(at.post_processing.post_processor, 'enable', 'off');
             % disable any additional GUI-components
@@ -1201,15 +1329,18 @@ function varargout = callbacks(funfcn, varargin)
                 set(at.post_processing.additional_controls.panel(:), 'visible', 'off');
             end
         end
+
     end
 
     % select the post-processor
-    function select_postprocessor(varargin)%#ok
+    function select_postprocessor(varargin)%#ok<DEFNU>
+
         % get the newly selected post processor
         strings = get(varargin{1}, 'string');
         if ~iscell(strings), strings = {strings}; end
         value   = get(varargin{1}, 'value');
         new_selection = strings{value};
+
         % take appropriate action
         if strcmpi(new_selection, '(none)')
             % hide any additional GUI-components
@@ -1219,8 +1350,7 @@ function varargout = callbacks(funfcn, varargin)
             end
             % don't forget to change its setting
             settings.postprocessing.post_processor = 1;
-            % and we're done
-            return
+
         else
             % find which post-processor's GUI function we have to call
             index = strcmpi({environment.plugin_info.postprocessors(:).name}, ...
@@ -1230,42 +1360,48 @@ function varargout = callbacks(funfcn, varargin)
             % and call it
             environment.plugin_info.postprocessors(index).GUI_function_handle(value);
         end
+
     end % select post processor
 
     % Hide/show "find nearby MPs" post-processor threshold controls
-    function find_nearby_MPs_threshold(varargin)%#ok
+    % TODO: this is plugig code
+    function find_nearby_MPs_threshold(varargin)%#ok<DEFNU>
         switch varargin{2}.NewValue
             case at.post_processing.additional_controls.constant_threshold.radio
                 structfun(@(x) set(x, 'enable', 'on'), ...
-                    at.post_processing.additional_controls.constant_threshold);
+                         at.post_processing.additional_controls.constant_threshold);
                 structfun(@(x) set(x, 'enable', 'off'), ...
-                    at.post_processing.additional_controls.variable_threshold);
+                          at.post_processing.additional_controls.variable_threshold);
                 set(at.post_processing.additional_controls.variable_threshold.radio,...
                     'enable', 'on');
             case at.post_processing.additional_controls.variable_threshold.radio
                 structfun(@(x) set(x, 'enable', 'off'), ...
-                    at.post_processing.additional_controls.constant_threshold);
+                          at.post_processing.additional_controls.constant_threshold);
                 structfun(@(x) set(x, 'enable', 'on'), ...
-                    at.post_processing.additional_controls.variable_threshold);
+                          at.post_processing.additional_controls.variable_threshold);
                 set(at.post_processing.additional_controls.constant_threshold.radio,...
                     'enable', 'on');
         end
     end % find nearby MPs threshold
 
     %% Callbacks for algorithms tab
+    % ==========================================================================
 
     % disable certain global optimizers in case of
     % multi-objective optimization
     function objectives_selection(varargin) %#ok<VANUS>
+
         % collect statusses
         selected = [get(alg.MaxPayloadObjective  , 'value')
                     get(alg.MinTOFObjective      , 'value')
                     get(alg.OtherObjectives.check, 'value')];
+
         % max. payload mass should always be selected
         if ~selected(1)
             set(alg.MaxPayloadObjective, 'value', 1);
             settings.optimize.objectives.max_mass = true;
         end
+
         % disable all global optimizers but GODLIKE when
         % multiple objectives are selected
         if nnz(selected) > 1
@@ -1277,6 +1413,7 @@ function varargout = callbacks(funfcn, varargin)
         else
             set(alg.global_optimizer(2:end), 'enable', 'on');
         end
+
         % enable/disable "Load..." button when "Other objectives" are
         % selected
         if selected(3)
@@ -1284,29 +1421,32 @@ function varargout = callbacks(funfcn, varargin)
         else
             set(alg.OtherObjectives.button, 'enable', 'off')
         end
+
     end % objectives selection
 
     % set algorithm parameters
-    function optimization_parameters(varargin)%#ok
+    function optimization_parameters(varargin)%#ok<DEFNU,VANUS>
 
         % GODLIKE
         if settings.optimize.global.optimizer(1)
+
             % current settings
             s = settings.optimize.global.optimizer_settings{1};
+
             % pop the dialog  box
             [new_settings, button] = settingsdlg(...
                  s,...
-                'title'     , 'GODLIKE parameters',...
-                'Separator' , 'GODLIKE',...
-                'ItersUb'   , s.ItersUb,...
-                'ItersLb'   , s.ItersLb,...
-                'MaxIters'  , s.MaxIters,...
+                'title'      , 'GODLIKE parameters',...
+                'Separator'  , 'GODLIKE',...
+                'ItersUb'    , s.ItersUb,...
+                'ItersLb'    , s.ItersLb,...
+                'MaxIters'   , s.MaxIters,...
                 'MaxFunEvals', s.MaxFunEvals,...
-                'TolCon'    , s.TolCon,...
+                'TolCon'     , s.TolCon,...
                 {'Display (debug)';'display'}, {'off';'iter'},...
-                'NumStreams', {'Auto'; 1;2;3;4;5},...
-                'Number of GAs', {1;2;3;4;'none'},...
-                'Number of DEs', {1;2;3;4;'none'},...
+                'NumStreams'    , {'Auto'; 1;2;3;4;5},...
+                'Number of GAs' , {1;2;3;4;'none'},...
+                'Number of DEs' , {1;2;3;4;'none'},...
                 'Number of PSOs', {1;2;3;4;'none'},...
                 'Number of ASAs', {1;2;3;4;'none'},...
                 {'Automatic popsize'; 'AutoPopsize'}, [true true],...
@@ -1322,24 +1462,28 @@ function varargout = callbacks(funfcn, varargin)
                     'Fub',  s.DE.Fub,...
                     'CrossConst', s.DE.CrossConst,...
                 'Separator', 'ASA',...
-                    'T0' , s.ASA.T0,...
+                    'T0'       , s.ASA.T0,...
                     'ReHeating', s.ASA.ReHeating,...
                 'Separator', 'PSO',...
-                    'eta1', s.PSO.eta1,...
-                    'eta2', s.PSO.eta2,...
-                    'eta3', s.PSO.eta3,...
+                    'eta1' , s.PSO.eta1,...
+                    'eta2' , s.PSO.eta2,...
+                    'eta3' , s.PSO.eta3,...
                     'omega', s.PSO.omega,...
-                    'NumNeighbors', s.PSO.NumNeighbors,...
+                    'NumNeighbors'   , s.PSO.NumNeighbors,...
                     'NetworkTopology', {'star'; 'ring'; 'fully_connected'});
-                % parse settings
+
+                % Parse settings
                 if strcmpi(button, 'OK')
+
                     % popsize
                     if new_settings.AutoPopsize
                         new_settings.popsize = []; end
                     new_settings = rmfield(new_settings, 'AutoPopsize');
+
                     % numstreams
                     if strcmpi(new_settings.NumStreams, 'Auto')
                         new_settings.NumStreams = []; end
+
                     % algorithms
                     new_settings.algorithms = [...
                         repmat({'GA'},  new_settings.NumberOfGAs, 1)
@@ -1347,23 +1491,27 @@ function varargout = callbacks(funfcn, varargin)
                         repmat({'PSO'}, new_settings.NumberOfPSOs, 1)
                         repmat({'ASA'}, new_settings.NumberOfASAs, 1)];
                      new_settings = rmfield(new_settings, ...
-                      {'NumberOfGAs';'NumberOfDEs';'NumberOfPSOs';'NumberOfASAs'});
+                                            {'NumberOfGAs';'NumberOfDEs';'NumberOfPSOs';'NumberOfASAs'});
+
                     % algorithm specific
                     new_settings.GA.CrossProb    = new_settings.CrossProb;
                     new_settings.GA.MutationProb = new_settings.MutationProb;
                     new_settings.GA.Coding       = new_settings.Coding;
                     new_settings.GA.NumBits      = new_settings.NumBits;
                     new_settings = rmfield(new_settings, ...
-                        {'CrossProb';'MutationProb';'Coding';'NumBits'});
+                                           {'CrossProb';'MutationProb';'Coding';'NumBits'});
+
                     new_settings.DE.Flb        = new_settings.Flb;
                     new_settings.DE.Fub        = new_settings.Fub;
                     new_settings.DE.CrossConst = new_settings.CrossConst;
                     new_settings = rmfield(new_settings, ...
-                        {'Flb';'Fub';'CrossConst'});
+                                           {'Flb';'Fub';'CrossConst'});
+
                     new_settings.ASA.T0        = new_settings.T0;
                     new_settings.ASA.ReHeating = new_settings.ReHeating;
                     new_settings = rmfield(new_settings, ...
-                        {'T0';'ReHeating'});
+                                           {'T0';'ReHeating'});
+
                     new_settings.PSO.eta1  = new_settings.eta1;
                     new_settings.PSO.eta2  = new_settings.eta2;
                     new_settings.PSO.eta3  = new_settings.eta3;
@@ -1371,15 +1519,17 @@ function varargout = callbacks(funfcn, varargin)
                     new_settings.PSO.NumNeighbors = new_settings.NumNeighbors;
                     new_settings.PSO.NetworkTopology = new_settings.NetworkTopology;
                     new_settings = rmfield(new_settings, ...
-                        {'eta1';'eta2';'eta3';'omega';'NumNeighbors';'NetworkTopology'});
-                    % assign new options
+                                          {'eta1';'eta2';'eta3';'omega';'NumNeighbors';'NetworkTopology'});
+
                     settings.optimize.global.optimizer_settings{1} = new_settings;
                 end
 
-        % repeated Nelder Mead
+        % Repeated Nelder Mead
         elseif settings.optimize.global.optimizer(2)
+
             % current settings
             s = settings.optimize.global.optimizer_settings{2};
+
             % pop the dialog box
             [new_settings, button] = settingsdlg(...
                  s,...
@@ -1392,33 +1542,39 @@ function varargout = callbacks(funfcn, varargin)
                 {'Automatic popsize'; 'AutoPopsize'}, [true true],...
                 'popsize', s.popsize...
                 );
+
             % parse settings
             if new_settings.AutoPopsize
                 new_settings.popsize = []; end
-            new_settings = rmfield(new_settings, 'AutoPopsize');
+            new_settings = rmfield(new_settings,...
+                                   'AutoPopsize');
             if strcmpi(button, 'OK')
                 settings.optimize.global.optimizer_settings{2} = new_settings; end
 
         % repeated Quasi-Newton
         elseif settings.optimize.global.optimizer(3)
+
             % current settings
             s = settings.optimize.global.optimizer_settings{3};
+
             % pop the dialog box
             [new_settings, button] = settingsdlg(...
                  s,...
-                'title'     , 'Globalized Quasi-Newton parameters',...
-                'Separator' , 'Repeated Quasi-Newton',...
-                'MaxIters'  , s.MaxIter,...
+                'title'      , 'Globalized Quasi-Newton parameters',...
+                'Separator'  , 'Repeated Quasi-Newton',...
+                'MaxIters'   , s.MaxIter,...
                 'MaxFunEvals', s.MaxFunEvals,...
-                'TolCon'    , s.TolCon,...
+                'TolCon'     , s.TolCon,...
                 {'Display (debug)';'Display'}, {'off';'iter-detailed'},...
                 {'Automatic popsize'; 'AutoPopsize'}, [true true],...
                 'popsize', s.popsize...
                 );
+
             % parse settings
             if new_settings.AutoPopsize
                 new_settings.popsize = []; end
-            new_settings = rmfield(new_settings, 'AutoPopsize');
+            new_settings = rmfield(new_settings,...
+                                   'AutoPopsize');
             if strcmpi(button, 'OK')
                 settings.optimize.global.optimizer_settings{3} = new_settings; end
 
@@ -1426,7 +1582,8 @@ function varargout = callbacks(funfcn, varargin)
     end % optimization parameters
 
     % select costfunctions defined as plugins
-    function select_costfcn_plugin(varargin)%#ok
+    function select_costfcn_plugin(varargin)%#ok<DEFNU,VANUS>
+
         % create figure
         scz = get(0, 'ScreenSize');         % put the window in the center of the screen
         scx = round(scz(3)/2-200/2);        % (this will usually work fine, except on some
@@ -1442,23 +1599,25 @@ function varargout = callbacks(funfcn, varargin)
             'color'   , environment.colors.window_bgcolor,... % use system-default colorscheme
             'defaultuicontrolfontsize', 8); % default font size
 
+        uidefaults = {'units' , 'normalized',...
+                      'parent', costfcn_window};
+
         % create listbox
         listbox = uicontrol(...
+            uidefaults{:},...
             'style'     , 'list',...
             'background', environment.colors.edit_bgcolor,...
-            'units'     , 'normalized',...
-            'parent'    , costfcn_window,...
             'position'  , [0.01 0.6 0.98 0.39],...
             'string'    , [{'none'}; {environment.plugin_info.costfuns(:).name}],...
             'callback'  , @change_costfcn);
 
         % description
         description_panel = uipanel(...
-            'units'     , 'normalized',...
-            'parent'    , costfcn_window,...
+            uidefaults{:},...
             'position'  , [0.01 0.15 0.98 0.40],...
             'title'     , 'description');
         description = uicontrol(...
+            uidefaults{:},...
             'style'     , 'text',...
             'units'     , 'normalized',...
             'parent'    , description_panel,...
@@ -1467,8 +1626,7 @@ function varargout = callbacks(funfcn, varargin)
 
         % "OK" button
         uicontrol(...
-            'units'   , 'normalized',...
-            'parent'  , costfcn_window,...
+            uidefaults{:},...
             'style'   , 'pushbutton',...
             'string'  , 'OK',...
             'position', [0.2 0.05 0.25 0.05],...
@@ -1476,12 +1634,11 @@ function varargout = callbacks(funfcn, varargin)
 
         % "Cancel button"
         uicontrol(...
-            'units'   , 'normalized',...
-            'parent'  , costfcn_window,...
+            uidefaults{:},...
             'style'   , 'pushbutton',...
             'string'  , 'cancel',...
             'position', [0.6 0.05 0.25 0.05],...
-            'Callback', {@delete,costfcn_window});
+            'Callback', @delete,costfcn_window);
 
         % initialize listbox and description
         index = 1;
@@ -1489,18 +1646,22 @@ function varargout = callbacks(funfcn, varargin)
             names = {environment.plugin_info.costfuns(:).name};
             index = find(strcmpi(settings.optimize.objectives.other.name, names))+1;
         end
+
         set(listbox, 'value', index);
-        change_costfcn;
+        change_costfcn();
 
         % callback for OK-button
         function OK(varargin) %#ok<VANUS>
+
             % if "none" was selected, de-select the checkbox and its setting
             if (get(listbox, 'value') == 1)
+
                 % reset fields to empty
                 settings.optimize.objectives.other.function = [];
                 settings.optimize.objectives.other.name = '';
                 settings.optimize.objectives.other.use = false;
                 settings.optimize.objectives.other.axis_label = '';
+
                 % and de-select the checkbox
                 set(alg.OtherObjectives.check, 'value', false);
                 objectives_selection;
@@ -1519,8 +1680,10 @@ function varargout = callbacks(funfcn, varargin)
 
         % change description when another costfunction is selected
         function change_costfcn(varargin) %#ok<VANUS>
+
             % find which one was selected
             selected_costfcn = get(listbox, 'value')-1; % subtract "none" entry
+
             % change the description
             if(selected_costfcn == 0) % "none"
                 set(description, 'string', 'Use no additional cost functions.');
@@ -1535,19 +1698,25 @@ function varargout = callbacks(funfcn, varargin)
     %% Callbacks for output tab
 
     % Show/hide specific tabs
-    function show_output_tab(whichtab, varargin)%#ok
+    function show_output_tab(whichtab, varargin)%#ok<DEFNU,VANUS>
+
         % hide previous tab
         set(ot.tab(current_output_tab).button, ...
             'fontweight', 'normal',...
             'value'     , 0);
-        set(ot.tab(current_output_tab).panel, 'visible', 'off');
+        set(ot.tab(current_output_tab).panel, ...
+            'visible', 'off');
+
         % show the tab and accentuate the button
         set(ot.tab(whichtab).button, ...
             'fontweight', 'bold', ...
             'value'     , 1);
-        set(ot.tab(whichtab).panel, 'visible', 'on');
+        set(ot.tab(whichtab).panel,...
+            'visible', 'on');
+
         % set new current tab
         current_output_tab = whichtab;
+
         % also set specific axes as current axes
         switch whichtab
             case Pareto_tab
@@ -1563,22 +1732,29 @@ function varargout = callbacks(funfcn, varargin)
             case optimization_statistics
                 % do nothing
         end
+
     end % show output tab
 
     % reset infopane
     function reset_infopane(which_infopane, varargin)%#ok
         % just set the string of the infopane equal to its UserData
-        set(which_infopane, 'string', get(which_infopane, 'UserData'));
+        set(which_infopane, ...
+            'string', get(which_infopane,...
+                          'UserData'));
     end
 
     % invert the trajectory plot's colors
-    function invert_colors(varargin)%#ok
+    function invert_colors(varargin)%#ok<DEFNU,VANUS>
+
         % rename axes
         trajectory_axes = ot.tab(trajectory_tab).trajectory_pane(1);
+
         % get all the elements in the plot
         axes_children = get(trajectory_axes, 'children');
+
         % get all the texts
         text_labels = axes_children(strcmpi(get(axes_children, 'type'),  'text'));
+
         % set the plot background color to the inverse of what it's now
         current_color = get(trajectory_axes, 'color');
         if all(current_color == [0,0,0])
@@ -1588,10 +1764,11 @@ function varargout = callbacks(funfcn, varargin)
                 set(trajectory_axes, 'color', 'k')
                 set(text_labels, 'color', 'w')
         end
+
     end % invert colors
 
     % plot plots in external figure
-    function separate_plots(which_one, varargin)%#ok
+    function separate_plots(which_one, varargin)%#ok<DEFNU,VANUS>
         switch which_one
             case Pareto_tab
                 generate_output('separate_Paretofront')
@@ -1605,7 +1782,7 @@ function varargout = callbacks(funfcn, varargin)
     %% Other callbacks
 
     % Show/hide specific tabs
-    function showtab(whichtab, varargin)%#ok
+    function showtab(whichtab, varargin)%#ok<DEFNU,VANUS>
 
         if current_tab == whichtab
             return; end
@@ -1628,27 +1805,34 @@ function varargout = callbacks(funfcn, varargin)
     end % show tab
 
     % disable every control
+    % TODO: this has a large degree of overlap with toggle_panel()
     function [objects, states] = disable_all(varargin)
-        
+
         % collect all handles
         if (nargin == 0)
             controls = get(ct.panel, 'children');
-            objects  = [controls; handles.tabbutton(:); handles.OptimizeButton];
+            objects  = [controls;
+                        handles.tabbutton(:);
+                        handles.OptimizeButton];
         else
-            objects = get(varargin{1}, 'children');
+            objects = get(varargin{1},...
+                          'children');
         end
-        
+
         % initialize
         states = repmat({'off'}, size(objects, 1), 1);
-        
+
         % disable everything, while saving the original state
         for ii = 1:numel(states)
+
             % UIPANELS and AXES have no 'enable' property
-            if any( strcmpi(get(objects(ii), 'type'), {'uicontrol'}))
+            if strcmpi(get(objects(ii), 'type'), 'uicontrol')
+
                 % save the state
                 if strcmpi(get(objects(ii), 'enable'), 'on')
                     states{ii} = 'on';
                 end
+
                 % disable the control
                 set(objects(ii), 'enable','off')
 
@@ -1659,12 +1843,13 @@ function varargout = callbacks(funfcn, varargin)
                 objects = [objects; nested_objects];%#ok
             end
         end
-        
+
     end % disable all controls
 
     % reset all controls
     function reset_all(objects, states)
-        set(objects(strcmpi(states, 'on')), 'enable', 'on');
+        set(objects(strcmpi(states, 'on')), ...
+            'enable', 'on');
     end % reset all controls
 
 end % all callback functions
