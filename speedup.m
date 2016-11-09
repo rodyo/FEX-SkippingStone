@@ -24,12 +24,13 @@
 % Here's a list of all the computationally intesive functions that will be
 % compiled by running this function:
 %
-%   lambert.m             : lambert targeter for ballistic flights
-%   lambert_low_exposins.m: lambert targeter for Exponential Sinusoids
-%   TOF.m                 : time-of-flight equation for central body flyby's
-%   progress_orbit.c      : Kepler state transition matrix
-%   eM2E.c                : solve Kepler's equation
-%   paretofront.c         : logical Paretofront membership test
+%   lambert.m               : lambert targeter for ballistic flights
+%   lambert_low_exposins.m  : lambert targeter for Exponential Sinusoids
+%   TOF.m                   : time-of-flight equation for central body flyby's
+%   progress_orbit.c        : Kepler state transition matrix
+%   JPL_DE405_ephemerides.c : JPL planetary ephemerides calculator
+%   eM2E.c                  : solve Kepler's equation
+%   paretofront.c           : logical Paretofront membership test
 %
 function speedup
 
@@ -40,7 +41,6 @@ function speedup
     %              oldenhuis@luxspace.lu  (professional)
     % Affiliation: LuxSpace sarl
     % Licence    : BSD
-
 
     % If you find this work useful, please consider a donation:
     % https://www.paypal.me/RodyO/3.5
@@ -60,12 +60,13 @@ function speedup
         clc, fprintf(1, [...
                      ' This function will attempt to compile all of the following code\n',...
                      ' for the %s platform:\n\n',...
-                     '  lambert.m             : lambert targeter for ballistic flights\n',...
-                     '  lambert_low_exposins.m: lambert targeter for Exponential Sinusoids\n',...
-                     '  TOF.m                 : time-of-flight equation for central body flyby''s\n',...
-                     '  progress_orbit.c      : Kepler state transition matrix\n',...
-                     '  eM2E.c                : solve Kepler''s equation\n',...
-                     '  paretofront.c         : logical Paretofront membership test\n\n',...
+                     '  lambert.m               : lambert targeter for ballistic flights\n',...
+                     '  lambert_low_exposins.m  : lambert targeter for Exponential Sinusoids\n',...
+                     '  TOF.m                   : time-of-flight equation for central body flyby''s\n',...
+                     '  progress_orbit.c        : Kepler state transition matrix\n',...
+                     '  JPL_DE405_ephemerides.c : NASA/JPL planetary ephemerides calculator\n',...
+                     '  eM2E.c                  : solve Kepler''s equation\n',...
+                     '  paretofront.c           : logical Paretofront membership test\n\n',...
                      ' Do you wish to continue? '], computer('arch'));
         yn = input('','s');
         if any(strcmpi(yn, {'y' 'yes' 'yup' 'yep' 'ok' 'yeah' 'jawohl' 'yessirree'})), break;
@@ -177,6 +178,24 @@ function speedup
         msg{end+1} = ['COMPILING TOF.M FAILED: ',...
                       ME.message];
     end
+    
+    % compile MEX files for JPL development ephemerides 
+    % computations
+    cd(fullfile(rootdir,...
+                'ephemerides',...
+                'Lambert targeters'));
+    fprintf(1, ...
+            'Compiling Ephemerides_MEX.c...\n');
+        
+    % compile
+    try
+        mex Ephemerides_MEX.c jpleph.c JPLEPH19402100Bin.c Ephemerides_wrapper.c -outdir .. -output JPL_DE405_ephemerides
+    catch ME,ME; %#ok<VUNUS> 
+        msg{end+1} = ['COMPILING Ephemerides_MEX.c FAILED: ',...
+                      ME.message];
+    end
+    
+    
 
     %% COMPILE CONVERSION ROUTINES
 

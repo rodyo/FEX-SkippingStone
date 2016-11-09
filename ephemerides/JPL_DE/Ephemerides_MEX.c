@@ -56,7 +56,7 @@ mexFunction(int nlhs,       mxArray *plhs[],
 
         if (mxGetNumberOfElements(prhs[2]) != 1 || origin > JPL_NUMDEFS)
             mexErrMsgIdAndTxt(MEXNAME ":invalid_origin",
-                              "Origin must be given as a scalar integer between 1 and %d.",
+                              "Input argument \"origin\" must be given as a scalar integer between 1 and %d.",
                               JPL_NUMDEFS);
     }
 
@@ -96,8 +96,8 @@ mexFunction(int nlhs,       mxArray *plhs[],
 
         if (body > JPL_NUMDEFS)
             mexErrMsgIdAndTxt(MEXNAME ":invalid_body",
-                              "Body %d exceeds maximum in definition (%d).",
-                              i, JPL_NUMDEFS);
+                              "Target body %d not defined (maximum %d).",
+                              i+1u, JPL_NUMDEFS);
 
         select_bodies[body-1u] = 1u;
     }

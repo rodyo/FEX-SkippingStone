@@ -26,8 +26,8 @@
  * details of the implementation encapsulated.
  *****************************************************************************/
 
-extern unsigned char JPLEPH19402100Bin_405[];
-extern unsigned int  JPLEPH19402100Bin_405_len;
+extern unsigned char JPL_DE_data[];
+extern unsigned int  JPL_DE_data_len;
 
 #include <stdio.h>
 #include <math.h>
@@ -608,11 +608,8 @@ jpl_init_ephemeris(char *nam,
         return NULL;
     }
 
-    /*
-    rval->fileData       = JPLEPH20002060Bin_405;
-    rval->fileDataLength = JPLEPH20002060Bin_405_len;*/
-    rval->fileData       = JPLEPH19402100Bin_405;
-    rval->fileDataLength = JPLEPH19402100Bin_405_len;
+    rval->fileData       = JPL_DE_data;
+    rval->fileDataLength = JPL_DE_data_len;
 
     memcpy(title, rval->fileData, 84 * sizeof(char));
 

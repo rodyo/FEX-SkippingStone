@@ -103,11 +103,19 @@ function varargout = modify_settings(funfcn, varargin)
         environment.colors.edit_bgcolor = 'White';
 
         % Check if the optimization toolbox is available
+        environment.optim_toolbox_available = false;
         if ~isempty(ver('optim'))
-            environment.optim_toolbox_available = true;
-        else
-            environment.optim_toolbox_available = false;
-        end
+            environment.optim_toolbox_available = true; end
+        
+        % Check for ephemerides
+        environment.have_DE405_MEX = false;
+        if exist('JPL_DE405_ephemerides','file')==3    
+            environment.have_DE405_MEX = true; end
+        
+        % Check for ephemerides
+        environment.have_DE421_MEX = false;
+        if exist('JPL_DE421_ephemerides','file')==3    
+            environment.have_DE421_MEX = true; end
 
         % plugins
         % ======================================================================

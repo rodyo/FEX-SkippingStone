@@ -258,8 +258,8 @@ function varargout = MGA(batch_or_normal)
     % Solar system model
     if settings.model(1)
         % initialize the ephemerides model and wrapper function
-        model = initialize_ephemerides_generators(seq, model, 'Solar_System');
-        ephemerides_generation([],[], model, settings);
+        model = initialize_ephemerides_generators(seq, model, environment, 'Solar_System');
+        ephemerides_generation([],[], model, environment, settings);
         % load complete solar system model
         model = Solar_system_model(seq, ...
             settings.launch_window_days_past_J2000(1), model, environment, constants);
@@ -271,8 +271,8 @@ function varargout = MGA(batch_or_normal)
     % Jovian model
     elseif settings.model(2)
         % initialize the ephemerides model and wrapper function
-        model = initialize_ephemerides_generators(seq, model, 'Jovian_System');
-        ephemerides_generation([],[], model, settings);
+        model = initialize_ephemerides_generators(seq, model, environment, 'Jovian_System');
+        ephemerides_generation([],[], model, environment, settings);
         % load complete Jovian system model
         model = Jovian_system_model(model);
         %??? to be continued later
@@ -280,8 +280,8 @@ function varargout = MGA(batch_or_normal)
     % Julian model
     elseif settings.model(3)
         % initialize the ephemerides model and wrapper function
-        model = initialize_ephemerides_generators(seq, model, 'Julian_System');
-        ephemerides_generation([],[], model, settings);
+        model = initialize_ephemerides_generators(seq, model, environment, 'Julian_System');
+        ephemerides_generation([],[], model, environment, settings);
         % load complete Jovian system model
         model = Julian_system_model(model);
         %??? to be continued later
@@ -861,38 +861,80 @@ function varargout = PC_objective_function(objectives, result, stats)
 end % patched conics objective/constraint function
 
 % small wrapper function for ephemerides generators
-function statevec = ephemerides_generation(body, time, model, settings)
+function statevec = ephemerides_generation(body, time, model, environment, settings)
 
     % initialize persistents
-    persistent STATES SETTINGS STATIC
+    persistent STATES SETTINGS STATIC HAVE_DE405_MEX HAVE_DE421_MEX
 
     % initialize them on first call
-    if (nargin == 4)
+    if (nargin == 5)
          STATES   = model.states;
          SETTINGS = settings;
          STATIC   = model.static;
-         return
+         
+         HAVE_DE405_MEX = environment.have_DE405_MEX;
+         HAVE_DE421_MEX = environment.have_DE421_MEX;
+         
+         return;
     end
 
     % initialize
     statevec = zeros(1, 6);
+    
     % first check static bodies
-    if STATIC{1}(body), statevec = STATIC{2}{body}; return, end
-
-    % JPL/DE405
-    if SETTINGS.optimize.ephemerides(1)
-        statevec = JPL_DE405_ephemerides(time, STATES(body, :));
-
-    % ??? TODO
-    % Kepler (direct)
-    elseif SETTINGS.optimize.ephemerides(2)
-        statevec = two_body_ephemerides(body, time, 0, model,constants);
-        % ??? TODO
-    % quintic best-fit
-    elseif SETTINGS.optimize.ephemerides(3)
-        statevec = quintic_best_fit(time, body, model,constants);
-        % ??? TODO
+    if STATIC{1}(body)
+        statevec = STATIC{2}{body}; 
+        return;
     end
+
+    switch find(SETTINGS.optimize.ephemerides(1),1,'first')
+        
+        % JPL/DE405
+        case 1
+            if HAVE_DE405_MEX
+
+                % JPL has different body order; convert
+                if body==1, JPL_body = 11;
+                else JPL_body = body-1; end
+
+                % JPL expects JD instead of days past J2000
+                time_corrected = time + 2451544.5;
+
+                statevec = JPL_DE405_ephemerides(time_corrected, JPL_body);
+            else
+                statevec = JPL_DE405_ephemerides(time, STATES(body, :));
+            end
+         
+        % JPL/DE421
+        case 2
+            if HAVE_DE421_MEX
+
+                % JPL has different body order; convert
+                if body==1, JPL_body = 11;
+                else JPL_body = body-1; end
+
+                % JPL expects JD instead of days past J2000
+                time_corrected = time + 2451544.5;
+
+                statevec = JPL_DE421_ephemerides(time_corrected, JPL_body);
+                
+            else
+                error([mfilename ':GUI_inconsistency'], [...
+                      'JPL421 selected while MEX file not available; ',...
+                      'this indicates a bug in the GUI.']);                
+            end
+          
+        % Kepler (direct)
+        case 3
+            statevec = two_body_ephemerides(body, time, 0, model,constants);
+            % ??? TODO
+            
+        % quintic best-fit    
+        case 4
+            statevec = quintic_best_fit(time, body, model,constants);
+            % ??? TODO
+    end
+    
 end % ephemerides generation
 
 %% MGA -- main optimization

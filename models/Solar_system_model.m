@@ -3,7 +3,6 @@ function model = Solar_system_model(seq, t0, model, environment, constants)
 
 
 % Authors
-% .·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·.·`·
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@gmail.com
 % Affiliation: Delft University of Technology
@@ -42,7 +41,10 @@ function model = Solar_system_model(seq, t0, model, environment, constants)
         
         % make sure the JPL/DE405 ephemerides are loaded
         % (always needed here to generate the initial x0's)
-        model = initialize_ephemerides_generators(seq, model, 'Solar_System');
+        model = initialize_ephemerides_generators(seq, ...
+                                                  model,...
+                                                  environment,...
+                                                  'Solar_System');
         
         % initialize waitbar
         progress_bar(0, 'Loading texture maps...');
@@ -111,7 +113,7 @@ function model = Solar_system_model(seq, t0, model, environment, constants)
                         else % transparency maps are grayscale
                             texture = rot90(texture,2);
                         end
-                    catch ME
+                    catch ME,ME %#ok<NOPRT>
                         % insert the default texture if this fails
                         texture = default_texture;
                         % append this error message
@@ -131,7 +133,7 @@ function model = Solar_system_model(seq, t0, model, environment, constants)
                     flipud(texture(:, :, 2)), flipud(texture(:, :, 3)));   
                 texture = cat(3, fliplr(texture(:, :, 1)), ...
                     fliplr(texture(:, :, 2)), fliplr(texture(:, :, 3)));                
-                catch ME
+                catch ME,ME %#ok<NOPRT>
                     % insert the default texture if this fails
                     texture = default_texture;
                     % append this error message
@@ -175,10 +177,27 @@ function model = Solar_system_model(seq, t0, model, environment, constants)
         % get the initial positions/velocities
         model.x0s = zeros(num_bodies, 6);
         for i = which_ones(:).'
+            
             % exclude Sun
-            if (i == 1), model.x0s(1, :) = zeros(1,6); continue; end
+            if (i == 1)
+                model.x0s(1, :) = zeros(1,6); 
+                continue;
+            end
+            
             % all other bodies
-            model.x0s(i, :) = JPL_DE405_ephemerides(t0, model.states(i, :));
+            if environment.have_DE405_MEX
+                
+                % JPL has different body order; convert
+                if i==1, body = 11;
+                else body = i-1; end
+                
+                % JPL expects JD instead of days past J2000
+                t0_corrected = t0 + 2451544.5;
+                
+                model.x0s(i, :) = JPL_DE405_ephemerides(t0_corrected, body);
+            else
+                model.x0s(i, :) = JPL_DE405_ephemerides(t0, model.states(i, :));
+            end
         end
         
         % as, es, is, omegas, Omegas, thetas
