@@ -96,7 +96,11 @@ function varargout = kep2para(varargin)
 
     % default errortrap
     narg = nargin;
-    error(nargchk(2, 8, narg));%#ok
+    if verLessThan('MATLAB', '8.6')
+        error(nargchk(2, 8, narg)); %#ok<NCHKN>
+    else
+        narginchk(2, 8);
+    end
 
     % parse input parameters
     thorM = 'M'; % defaults to mean anomaly

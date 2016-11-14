@@ -4,9 +4,9 @@ function varargout = example_costfunction(varargin)
 
     %% Return info only
 
-    costfun.name = 'Maximum amount of MP''s';
+    costfun.name = 'Example cost function';
     costfun.description = [...
-        'This is en example costfunction that only serves to show ',...
+        'This is an example costfunction that only serves to show ',...
         'how to write custom costfunctions.'];
     costfun.function_handle = @(result) costfcn(result);
     costfun.axis_label = '';

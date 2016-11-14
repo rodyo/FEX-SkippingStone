@@ -93,11 +93,14 @@ function [reachable, encounter_times, min_dist, rel_speed] = minimum_distance_co
     
     % parameters & constants   
     small_e   = 0.3; % define what a "small" eccentricity is
-    threshold = 0.01 * 1.495978706910000e+008; % default threshold; 0.01 AU        
-    warning_state = warning('off', 'MATLAB:divideByZero'); % just annoying!
-    
+    threshold = 0.01 * 1.495978706910000e+008; % default threshold; 0.01 AU       
+        
     % errortrap (ALL arguments must be given!)
-    error(nargchk(5,6,nargin));
+    if verLessThan('MATLAB', '8.6')
+        error(nargchk(5,6,nargin)); %#ok<NCHKN>
+    else
+        narginchk(5,6);
+    end
     
     % times are given in days; convert to seconds
     % (everything else is given in seconds)
@@ -267,7 +270,8 @@ function [reachable, encounter_times, min_dist, rel_speed] = minimum_distance_co
     end
     
     % they ALL might be unreachable. Exit in that case
-    if isempty(good_inds), warning(warning_state); return, end
+    if isempty(good_inds)
+        return, end
     
     %% Time prefilter & compute minimum distances
     
@@ -585,7 +589,8 @@ function [reachable, encounter_times, min_dist, rel_speed] = minimum_distance_co
                     try % [t] might be empty
                         better_root = FindRrrelRoots(...
                             t(which_t)-Ts(ii)/5, t(which_t)+Ts(ii)/5, 5, t0,x0p,x0s(ii,:),muC);
-                    catch, break; %#ok
+                    catch ME,ME; %#ok<VUNUS>
+                        break; 
                     end
                 else break
                 end
@@ -638,9 +643,6 @@ function [reachable, encounter_times, min_dist, rel_speed] = minimum_distance_co
     
     % scale encounter times back to days
     encounter_times = encounter_times/86400;
-    
-    % reset warnings
-    warning(warning_state); 
         
 end % main function
 

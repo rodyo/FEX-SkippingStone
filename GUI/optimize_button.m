@@ -773,6 +773,8 @@ end % MGA
 % objective/constraint wrapper function for first-order optimization
 function varargout = PC_objective_function(objectives, result, stats)
 
+    global MainWin
+
     % initialize persistent variables
     persistent EPHEMERIDES LAMBERT LAMBERT_FAILED RP_FAILED   % statistics
     persistent CENTRAL_BODY CENTRAL_BODY_FAILED               % more statistics
