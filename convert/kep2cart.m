@@ -62,7 +62,12 @@ function varargout = kep2cart(varargin)
 % https://www.paypal.me/RodyO/3.5
 
     % default errortrap
-    error(nargchk(2, 8, nargin));
+    if verLessThan('MATLAB', '8.6')
+        error(nargchk(2, 8, nargin)); %#ok<NCHKN>
+    else
+        narginchk(2,8);
+    end
+
 
     % parse & check input
     thorM = 'M';

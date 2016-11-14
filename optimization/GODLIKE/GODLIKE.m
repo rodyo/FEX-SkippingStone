@@ -145,7 +145,11 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
     %% INITIALIZE
 
     % basic check on input
-    error(nargchk(3, inf, nargin));
+    if verLessThan('MATLAB', '8.6')
+        error(nargchk(3, inf, nargin)); %#ok<NCHKN>
+    else
+        narginchk(3, inf);
+    end
 
     % more elaborate check on input (nested function)
     check_input;

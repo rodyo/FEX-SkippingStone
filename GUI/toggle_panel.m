@@ -23,7 +23,7 @@ function states = toggle_panel(panels_in, action)
 
                 children = get(panel   , 'children');
                 types    = get(children, 'type');
-                panelind = strcmp(types, 'uipanel');
+                panelind = strcmp(types, 'uipanel') | strcmp(types, 'uibuttongroup');
                 panels   = children( panelind);
                 other    = children(~panelind);
 

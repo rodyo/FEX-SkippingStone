@@ -30,7 +30,12 @@
 function E = eM2E(e, M, tol)
 
     % error check
-    error(nargchk(2,3,nargin));%#ok
+    if verLessThan('MATLAB', '8.6')
+        error(nargchk(2,3,nargin)); %#ok<NCHKN>
+    else
+        narginchk(2,3);
+    end
+    
     if ~all(size(e) == size(M))
         error('eM2E:size_mismatch',...
             'Size of input arguments [e] and [M] must be equal.');
