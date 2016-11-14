@@ -13,7 +13,7 @@ function options = set_options(varargin)
 %   ======================================================================
 %   General Settings:
 %   ======================================================================
-%       Display : string, either 'off' (default), or 'iter'. This option 
+%       Display : string, either 'off' (default), or 'iter'. This option
 %                 determines the type of display that
 %                 is used to show the algorithm's progress. 'CommandWindow'
 %                 (or simply 'on') will show relevant information in the
@@ -35,12 +35,12 @@ function options = set_options(varargin)
 %      MinIters : positive scalar. This option defines the minimum amount
 %                 of iterations GODLIKE will perform. This is particularly
 %                 useful in multi-objective problems with small population
-%                 sizes, because this combination increases the probability 
-%                 that GODLIKE reports convergence (all fronts are Pareto 
-%                 fronts), while a Pareto front of much better quality is 
+%                 sizes, because this combination increases the probability
+%                 that GODLIKE reports convergence (all fronts are Pareto
+%                 fronts), while a Pareto front of much better quality is
 %                 obtained if some additional shuffles are performed. The
-%                 default value is 2. 
-%     OutputFcn : Define an output function. Output functions are 
+%                 default value is 2.
+%     OutputFcn : Define an output function. Output functions are
 %                 evaluated at every iteration of the algorithm. They
 %                 should be defined as
 %
@@ -48,7 +48,7 @@ function options = set_options(varargin)
 %
 %                 When [stop] evaluates to 'true', GODLIKE will stop
 %                 immediately. In that case, it will return the best result
-%                 found thus far. The inputs [x], [optimValues] and 
+%                 found thus far. The inputs [x], [optimValues] and
 %                 [state] are described in more detail in the
 %                 documentation.
 %
@@ -66,26 +66,26 @@ function options = set_options(varargin)
 %        ItersUb : positive scalar. This sets the maximum TOTAL amount of
 %                  iterations that will be spent in all of the selected
 %                  heuristic optimizers combined. The default value is 100.
-%        TolIters: positive scalar. This option defines how many consecutive 
-%                  iterations the convergence criteria must hold for each 
-%                  individual algorithm, before that algorithm is said to 
-%                  have converged. The default setting is 15 iterations. 
-%           TolX : positive scalar. Convergence is assumed to be attained, 
+%        TolIters: positive scalar. This option defines how many consecutive
+%                  iterations the convergence criteria must hold for each
+%                  individual algorithm, before that algorithm is said to
+%                  have converged. The default setting is 15 iterations.
+%           TolX : positive scalar. Convergence is assumed to be attained,
 %                  if the coordinate differences in all dimensions for a
-%                  given amount of consecutive iterations is less than 
-%                  [TolX]. This amount of iterations is [TolIters] for each 
-%                  individual algorithm, and simply 2 for GODLIKE-iterations. 
+%                  given amount of consecutive iterations is less than
+%                  [TolX]. This amount of iterations is [TolIters] for each
+%                  individual algorithm, and simply 2 for GODLIKE-iterations.
 %                  The default value is 1e-4.
-%         TolFun : positive scalar. Convergence is said to have been 
-%                  attained if the value of the objective function decreases 
+%         TolFun : positive scalar. Convergence is said to have been
+%                  attained if the value of the objective function decreases
 %                  less than [TolFun] for a given amount of consecutive
-%                  iterations. This amount of iterations is [TolIters] for 
-%                  each individual algorithm, and simply 2 for the 
+%                  iterations. This amount of iterations is [TolIters] for
+%                  each individual algorithm, and simply 2 for the
 %                  GODLIKE-iterations. The default value is 1e-4.
 %  AchieveFunVal : scalar. This value is used in conjunction with the
-%                  [TolX] and [TolFun] settings. If set, the algorithm will 
+%                  [TolX] and [TolFun] settings. If set, the algorithm will
 %                  FIRST try to achieve this function value, BEFORE enabling
-%                  the [TolX] and [TolFun] convergence criteria. By default, 
+%                  the [TolX] and [TolFun] convergence criteria. By default,
 %                  it is switched off (equal to AchieveFunVal = inf).
 %
 %   ======================================================================
@@ -122,9 +122,9 @@ function options = set_options(varargin)
 %   ======================================================================
 %   Options specific to the Adaptive Simulated Annealing Algorithm:
 %   ======================================================================
-%               T0 : positive scalar. This is the initial temperature for 
+%               T0 : positive scalar. This is the initial temperature for
 %                    all particles. If left empty, an optimal one will be
-%                    estimated; this is the default. 
+%                    estimated; this is the default.
 %  CoolingSchedule : function handle, with [iteration], [T0], and[T] as
 %                    parameters. This function defines the cooling schedule
 %                    to be applied each iteration. The default is
@@ -134,11 +134,11 @@ function options = set_options(varargin)
 %                    It is only included for completeness, and testing
 %                    purposes. Only in rare cases is it beneficial to change
 %                    this setting.
-%        ReHeating : positive scalar. After an interchange operation in 
+%        ReHeating : positive scalar. After an interchange operation in
 %                    GODLIKE, the temperature of an ASA population should
 %                    be increased to allow the new individuals to move
 %                    over larger portions of the search space. The default
-%                    value is 
+%                    value is
 %
 %   ======================================================================
 %   Options specific to the Particle Swarm Algorithm:
@@ -162,35 +162,35 @@ function options = set_options(varargin)
 %   NumNeighbors : positive scalar. This defines the maximum number of
 %                  'neighbors' or 'friends' assigned to each particle. The
 %                  default value is 5.
-% NetworkTopology: string, equal to either 'fully_connected', 'star', or 
+% NetworkTopology: string, equal to either 'fully_connected', 'star', or
 %                  'ring'. This defines the topology of the social network
-%                  for each particle. In case 'star' is selected (the 
-%                  default), the setting for NumNeighbors will define the 
-%                  total number of partiles per star; the same holds in 
-%                  case 'ring' is selected. When 'fully_connected' is 
-%                  selected however, the value for NumNeighbors will be 
-%                  ignored (all particles are connected to all other 
-%                  particles). 
+%                  for each particle. In case 'star' is selected (the
+%                  default), the setting for NumNeighbors will define the
+%                  total number of partiles per star; the same holds in
+%                  case 'ring' is selected. When 'fully_connected' is
+%                  selected however, the value for NumNeighbors will be
+%                  ignored (all particles are connected to all other
+%                  particles).
 %
 % see also GODLIKE, pop_multi, pop_single.
-    
+
     % Last edited 30/Jul/2009
-    
+
     % create structure with default values if no input is given
     if (nargin == 0)
-        
+
         % general options
         options.display          = 'off';
         options.popsize          = [];
         options.MaxFunEvals      = 1e5;
         options.MaxIters         = 5;
-        options.MinIters         = 2;        
+        options.MinIters         = 2;
         options.TolIters         = 5;
         options.TolX             = 1e-4;
         options.TolFun           = 1e-4;
         options.TolCon           = 1e-4;
-        options.AchieveFunVal    = inf;        
-        options.outputFcn        = [];            
+        options.AchieveFunVal    = inf;
+        options.OutputFcn        = [];
         options.ItersLb          = 10;
         options.ItersUb          = 100;
         options.NumStreams       = 2;
@@ -198,57 +198,57 @@ function options = set_options(varargin)
         options.QuitWhenAchieved = false;
         options.ReinitRatio      = 0.05;
         options.ConstraintsInObjectiveFunction = false;
-        
-        
+
+
         % function evaluation
         % CAN'T BE SET MANUALLY - INTERNAL USE ONLY
         options.num_objectives = 1;
         options.dimensions     = [];
-        
+
         % Differential Evolution
         options.DE.Flb        = -1.2;
         options.DE.Fub        = +1.2;
         options.DE.CrossConst = +0.75;
-        
+
         % genetic algorithm
         options.GA.CrossProb    = 0.75;
         options.GA.MutationProb = 0.01;
         options.GA.Coding       = 'Binary';
         options.GA.NumBits      = 52;
-        
+
         % simulated annealing
         options.ASA.T0           = [];
         options.ASA.CoolingSchedule = @(T, T0, iteration) T0*0.87^iteration;
         options.ASA.ReHeating    = 5;
-        
+
         % particle swarm
         options.PSO.eta1         = 2;
         options.PSO.eta2         = 2;
         options.PSO.eta3         = 0.5;
         options.PSO.omega        = 0.5;
         options.PSO.NumNeighbors = 5;
-        options.PSO.NetworkTopology = 'star';        
-        
+        options.PSO.NetworkTopology = 'star';
+
         % finished
         return;
-        
+
     % create structure with fields according to user input
     else
-        
+
         % assign default values
         options = set_options;
-        
+
         % errortrap
         if (mod(nargin, 2) ~= 0)
             error('set_options:not_enough_arguments',...
                  'Please provide values for all the options.');
         end
-        
+
         % loop through all the inputs
         for i = 1:2:nargin
             option = varargin{i};
             value  = varargin{i+1};
-            
+
             % if option is not recognized, continue to the next argument
             if ~isa(option, 'char')
                 throwwarning(option, [], [], []);
@@ -259,7 +259,7 @@ function options = set_options(varargin)
             switch lower(option)
 
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-                % GENERAL OPTIONS                   
+                % GENERAL OPTIONS
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 case 'display'
                     if ~ischar(value)
@@ -269,28 +269,28 @@ function options = set_options(varargin)
                     if     strcmpi(value, 'off')
                         options.display = [];
                     elseif strcmpi(value, 'iter')
-                        options.display = 'iter';               
+                        options.display = 'iter';
                     else
                         error('population:set_options:unknown_display_option',...
                             ['Unknown display type: ', '''', value, '''.'])
                     end
-                    
-                % max. function evaluations    
+
+                % max. function evaluations
                 case 'maxfunevals'
                     if ~isnumeric(value)
                         throwwarning('MaxFunEvals', 'double', value);
                         continue;
                     end
                     options.MaxFunEvals = value;
-                
+
                 % population size
                 case 'popsize'
                     if ~isnumeric(value)
                         throwwarning('popsize', 'double', value);
                         continue;
                     end
-                    options.popsize = value;     
-               
+                    options.popsize = value;
+
                 case 'maxiters'
                     if ~isnumeric(value)
                         throwwarning('MaxIters', 'double', value);
@@ -304,14 +304,14 @@ function options = set_options(varargin)
                         continue;
                     end
                     options.MinIters = value;
-                    
+
                 case 'iterslb'
                     if ~isnumeric(value)
                         throwwarning('algiters', 'double', value);
                         continue;
                     end
                     options.ItersLb = value;
-                    
+
                 case 'itersub'
                     if ~isnumeric(value)
                         throwwarning('ItersUb', 'double', value);
@@ -325,42 +325,42 @@ function options = set_options(varargin)
                         continue;
                     end
                     options.TolIters = value;
-                    
+
                 case 'tolx'
                     if ~isnumeric(value)
                         throwwarning('TolX', 'double', value);
                         continue;
                     end
                     options.TolX = value;
-                    
+
                 case 'tolfun'
                     if ~isnumeric(value)
                         throwwarning('TolFun', 'double', value);
                         continue;
                     end
-                    options.TolFun = value;   
-                    
+                    options.TolFun = value;
+
                 case 'tolcon'
                     if ~isnumeric(value)
                         throwwarning('TolCon', 'double', value);
                         continue;
                     end
                     options.TolCon = value;
-                    
+
                 case 'achievefunval'
                     if ~isnumeric(value)
                         throwwarning('AchieveFunVal', 'double', value);
                         continue;
                     end
                     options.AchieveFunVal = value;
-                    
+
                 case 'quitwhenachieved'
                     if ~islogical(value)
                         throwwarning('AchieveFunVal', 'logical', value);
                         continue;
                     end
                     options.QuitWhenAchieved = value;
-                    
+
                 case 'constraintsinobjectivefunction'
                     if ~isnumeric(value)
                         throwwarning('ConstraintsInObjectiveFunction', 'numeric', value);
@@ -378,25 +378,25 @@ function options = set_options(varargin)
                         value = 2;
                     end
                     options.ConstraintsInObjectiveFunction = value;
-                    
+
                 case 'outputfcn'
                     if ~iscell(value) && ~isa(value, 'function_handle')
                         throwwarning('outputFcn', 'cell or function_handle', value);
                         continue;
                     end
-                    if ~iscell(options.outputFcn)
-                        options.outputFcn = {value};
+                    if ~iscell(options.OutputFcn)
+                        options.OutputFcn = {value};
                     else
-                        options.outputFcn = value;
+                        options.OutputFcn = value;
                     end
-                    
+
                 case 'numstreams'
                     if ~isnumeric(value)
                         throwwarning('NumStreams', 'double', value);
                         continue;
                     end
-                    options.NumStreams = value;                 
-                    
+                    options.NumStreams = value;
+
                 case 'algorithms'
                     if ischar(value), value = {value}; end
                     % check input
@@ -421,32 +421,32 @@ function options = set_options(varargin)
                         continue;
                     end
                     % all is ok; set the algorithms
-                    options.algorithms = upper(value); 
-                    
+                    options.algorithms = upper(value);
+
                 case 'reinitratio'
                     if ~isnumeric(value)
                         throwwarning('ReinitRatio', 'double', value);
                         continue;
                     end
-                    options.ReinitRatio = value;    
+                    options.ReinitRatio = value;
 
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 % OPTIONS SPECIFIC TO DIFFERENTIAL EVOLUTION
-                % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-                
+                % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 case 'flb'
                     if ~isnumeric(value)
                         throwwarning('Flb', 'double', value);
                         continue;
                     end
                     options.DE.Flb = value;
-                    
+
                 case 'fub'
                     if ~isnumeric(value)
                         throwwarning('Fub', 'double', value);
                         continue;
                     end
                     options.DE.Fub = value;
-                    
+
                 case 'crossconst'
                     if ~isnumeric(value)
                         throwwarning('CrossConst', 'double', value);
@@ -456,21 +456,21 @@ function options = set_options(varargin)
 
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 % OPTIONS SPECIFIC TO GENETIC ALGORITHM
-                % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-                
+                % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 case 'mutationprob'
                     if ~isnumeric(value)
                         throwwarning('MutationProb', 'double', value);
                         continue;
                     end
                     options.GA.MutationProb = value;
-                    
+
                 case 'crossprob'
                     if ~isnumeric(value)
                         throwwarning('CrossProb', 'double', value);
                         continue;
                     end
                     options.GA.CrossProb = value;
-                    
+
                 case 'coding'
                     if ~ischar(value)
                         throwwarning('Coding', 'char', value);
@@ -484,7 +484,7 @@ function options = set_options(varargin)
                         error('population:set_options:unknown_coding',...
                             ['Unknown coding type: ', '''', value, '''.'])
                     end
-                    
+
                 case 'numbits'
                     if ~isnumeric(value)
                         throwwarning('NumBits', 'double', value);
@@ -500,15 +500,15 @@ function options = set_options(varargin)
                         throwwarning('T0', 'double', value);
                         continue;
                     end
-                    options.ASA.T0 = abs(real(value));     
-                    
+                    options.ASA.T0 = abs(real(value));
+
                 case 'coolingschedule'
                     if ~isa(value, 'function_handle')
                         throwwarning('CoolingSchedule', 'function_handle', value);
                         continue;
                     end
                     options.ASA.CoolingSchedule = value;
-                    
+
                 case 'reheating'
                     if ~isa(value, 'double')
                         throwwarning('ReHeating', 'double', value);
@@ -525,61 +525,61 @@ function options = set_options(varargin)
                         continue;
                     end
                     options.PSO.eta1 = value;
-                    
+
                 case 'eta2'
                     if ~isnumeric(value)
                         throwwarning('eta2', 'double', value);
                         continue;
                     end
                     options.PSO.eta2 = value;
-                    
+
                 case 'eta3'
                     if ~isnumeric(value)
                         throwwarning('eta3', 'double', value);
                         continue;
                     end
                     options.PSO.eta3 = value;
-                    
+
                 case 'omega'
                     if ~isnumeric(value)
                         throwwarning('omega', 'double', value);
                         continue;
                     end
                     options.PSO.omega = value;
-                    
+
                 case 'numneighbors'
                     if ~isnumeric(value)
                         throwwarning('NumNeighbors', 'double', value);
                         continue;
                     end
                     options.PSO.NumNeighbors = value;
-                    
+
                 case 'networktopology'
                     if ~ischar(value)
                         throwwarning('NetworkTopology', 'char', value);
                         continue;
                     end
-                    if any(strcmpi(value, {'fully_connected';'star';'ring'}))                        
+                    if any(strcmpi(value, {'fully_connected';'star';'ring'}))
                         options.PSO.NetworkTopology = value;
                     else
                         error('set_options:unknown_topology', ['Unknown topology: ''', value, '''.'])
                     end
-                
+
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 % ALL OTHER CASES
                 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
                 otherwise
                     throwwarning(option);
-                    
+
             end % switch
-            
+
         end % for
-        
+
     end % if
-    
+
     % throw appropriate warning upon abuse of the function
     function throwwarning(option, required, given, varargin)%#ok
-        
+
         % test type
         if nargin == 3
             provided = whos('given');
@@ -588,12 +588,12 @@ function options = set_options(varargin)
                 ['Incorrect class type given for option ''%s'';\n',...
                 'required type is ''%s'', received ''%s''.\n',...
                 'Using default value...'], option, required, provided);
-            
+
         % unrecognized options will be ignored
         else
             warning('set_options:incorrectoption', ...
                 'Unrecognized option, ''%s''. Ignoring it...', num2str(option))
         end % if
     end % throwwarning
-    
+
 end % set options

@@ -174,8 +174,8 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
 
     % if an output function's been given, evaluate them
     state = 'init'; % initialization state
-    if ~isempty(options.outputFcn)
-        cellfun(@(x) x([],[],state), options.outputFcn, 'uniformoutput', false);
+    if ~isempty(options.OutputFcn)
+        cellfun(@(x) x([],[],state), options.OutputFcn, 'uniformoutput', false);
     end
 
     % do an even more elaborate check (the behavior of this
@@ -218,14 +218,14 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
                     pop{i,j}.iterate;
 
                     % evaluate the output functions
-                    if ~isempty(options.outputFcn)
+                    if ~isempty(options.OutputFcn)
                         % most intensive part, here in the inner loop
                         state = 'interrupt';
                         % collect information
                         [x, optimValues] = get_outputFcn_values(i,j);
                         % evaluate the output functions
                         stop = cellfun(@(y)y(x, optimValues, state), ...
-                            options.outputFcn, 'uniformoutput', false);
+                            options.OutputFcn, 'uniformoutput', false);
                         stop = any([stop{:}]);
                         % GODLIKE might need to stop here
                         if stop, outputFcnbreak = true; break; end
@@ -277,13 +277,13 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
                 if converged, break; end
 
                 % evaluate the output functions
-                if ~isempty(options.outputFcn)
+                if ~isempty(options.OutputFcn)
                     % end of an algorithm loop
                     state = 'iter';
                     % collect the information
                     [x, optimValues] = get_outputFcn_values(i,j);
                     % call the output functions
-                    cellfun(@(y)y(x,optimValues,state), options.outputFcn, 'uniformoutput', false);
+                    cellfun(@(y)y(x,optimValues,state), options.OutputFcn, 'uniformoutput', false);
                 end
 
             end % algorithm outer loop
@@ -321,13 +321,13 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
         generation = generation + 1;
 
         % evaluate the output functions
-        if ~outputFcnbreak && ~isempty(options.outputFcn)
+        if ~outputFcnbreak && ~isempty(options.OutputFcn)
             % end of a GODLIKE iteration
             state = 'iter';
             % collect the information
             [x, optimValues] = get_outputFcn_values([],[]);
             % call the output functions
-            cellfun(@(y)y(x, optimValues, state), options.outputFcn, 'uniformoutput', false);
+            cellfun(@(y)y(x, optimValues, state), options.OutputFcn, 'uniformoutput', false);
         end
 
     end % GODLIKE loop
@@ -410,8 +410,8 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
     end
 
     % last call to output function
-    if ~isempty(options.outputFcn)
-        cellfun(@(y)y([],[], 'done'), options.outputFcn, 'uniformoutput', false);
+    if ~isempty(options.OutputFcn)
+        cellfun(@(y)y([],[], 'done'), options.OutputFcn, 'uniformoutput', false);
     end
 
     %% NESTED FUNCTIONS
@@ -487,8 +487,8 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
                 % multi-objective optimization has a maximum of 6 output arguments
                 error(nargoutchk(0, 6, varargin{1}))
             end
-            if ~isempty(options.outputFcn) && ...
-               ~all( cellfun(@(x) isa(x, 'function_handle'), options.outputFcn))
+            if ~isempty(options.OutputFcn) && ...
+               ~all( cellfun(@(x) isa(x, 'function_handle'), options.OutputFcn))
                 error('GODLIKE:outputFcn_shouldbe_function_handle',...
                     'All output functions should be function handles.')
             end
@@ -505,8 +505,8 @@ function varargout = GODLIKE(funfcn, lb, ub, varargin)
         if nargin > 4 , options = set_options(varargin{2:end}); end % individually provided
 
         % cast output functions to cell
-        if isfield(options, 'outputFcn') && isa(options.outputFcn, 'function_handle')
-            options.outputFcn = {options.outputFcn}; end
+        if isfield(options, 'OutputFcn') && isa(options.OutputFcn, 'function_handle')
+            options.OutputFcn = {options.OutputFcn}; end
 
         % constraint functions
         if nargin == 2 || isempty(varargin{1}) % default - no constraint function
