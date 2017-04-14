@@ -381,7 +381,7 @@ function options = set_options(varargin)
 
                 case 'outputfcn'
                     if ~iscell(value) && ~isa(value, 'function_handle')
-                        throwwarning('outputFcn', 'cell or function_handle', value);
+                        throwwarning('OutputFcn', 'cell or function_handle', value);
                         continue;
                     end
                     if ~iscell(options.OutputFcn)

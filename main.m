@@ -20,6 +20,13 @@
 % If you find this work useful, please consider a donation:
 % https://www.paypal.me/RodyO/3.5
 
+% If you would like to cite this work, please use the following template:
+%
+% Rody Oldenhuis, orcid.org/0000-0002-3162-3660. "Skipping Stone" version
+% <version>, <date you last used it>. MATLAB interplanetary space mission 
+% design tool.
+% https://nl.mathworks.com/matlabcentral/fileexchange/29272-skipping-stone
+
 
 
     
