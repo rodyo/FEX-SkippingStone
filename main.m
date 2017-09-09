@@ -68,7 +68,6 @@
 %% Construct main window, and load all defaults
 
 function varargout = main(varargin) %#ok<VANUS>
-% Last edited 19/Nov/2009.
     
     % global variables
     global MainWin 

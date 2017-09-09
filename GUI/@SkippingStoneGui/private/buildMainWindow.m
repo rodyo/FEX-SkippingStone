@@ -1,36 +1,44 @@
-function build_main_window(environment, model, constants, calculation, settings)
+function buildMainWindow(obj,...
+                         environment,...
+                         model,...
+                         constants,...
+                         calculation,...
+                         settings)
 
     %% Initialize
 
     % initialize globals
-    global MainWin current_tab current_output_tab
+    global current_tab current_output_tab
     global launch_tab sequence_tab arrival_tab algorithms_tab output_tab
     global Pareto_tab trajectory_tab central_body_speed post_processing
     global BATCH_optimization optimization_statistics
 
     % Start building main window
-    scz = get(0, 'ScreenSize');                    % put the window in the center of the screen
-    scx = round(scz(3)/2-800/2);                   % (this will usually work fine, except on some
-    scy = round(scz(4)/2-600/2);                   % multi-monitor setups)
-    figure(MainWin);
-    set(MainWin,...
-        'visible' , 'off',...                      % hide the GUI while it is being constructed
-        'backingstore', 'off',...                  % DON'T save a copy in the background
-        'position', [scx scy 935 690], ...         % 935 × 690 will look right on most computers
-        'resize'  , 'on', ...                      % but just keep it resizable
-        'renderer', 'zbuffer', ...                 % best choice for speed vs. compatibility
-        'units'   , 'normalized',...               % better for resizing etc.
-        'DockControls', 'off',...                  % force it to be non-dockable
-        'menubar' ,'none', ...                     % menubar is redefined later
-        'toolbar' ,'none', ...                     % no toolbar (???possible extention)
-        'NumberTitle', 'off',...                   % "Figure 123456789:" just looks corny
-        'color'   , environment.colors.window_bgcolor,...  % use system-default colorscheme
-        'UserData', 'clean',...                    % nothing's done; state is 'clean'
-        'defaultuicontrolfontsize', 8,...          % force small fonts
-        'CloseRequestFcn', @close_main_window);    % function called when window is closed
+    scz = get(0, 'ScreenSize');    % put the window in the center of the screen
+    scx = round(scz(3)/2-800/2);   % (this will usually work fine, except on some
+    scy = round(scz(4)/2-600/2);   % multi-monitor setups)
+    
+    main_window = figure();    
+    
+    set(main_window,...
+        'tag'     , SkippingStoneGui.mainwin_tag,...
+        'visible' , 'off',...                   % hide the GUI while it is being constructed
+        'backingstore', 'off',...               % DON'T save a copy in the background
+        'position', [scx scy 935 690], ...      % 935 × 690 will look right on most computers
+        'resize'  , 'on', ...                   % but just keep it resizable
+        'renderer', 'OpenGL', ...               % best choice for speed vs. compatibility
+        'units'   , 'normalized',...            % better for resizing etc.
+        'DockControls', 'off',...               % force it to be non-dockable
+        'menubar' ,'none', ...                  % menubar is redefined later
+        'toolbar' ,'none', ...                  % no toolbar (???possible extention)
+        'NumberTitle', 'off',...                % "Figure 1: " just looks corny
+        'color'   , environment.colors.window_bgcolor,...  
+        'UserData', 'clean',...                 % nothing's done; state is 'clean'
+        'defaultuicontrolfontsize', 8,...       % force small fonts
+        'CloseRequestFcn', @close_main_window); % function called when window is closed
 
     % useful when developing/debugging
-    setappdata(MainWin, 'GUI_built_OK', false);
+    setappdata(main_window, 'GUI_built_OK', false);
 
     %% Menu bar
 
@@ -129,7 +137,7 @@ function build_main_window(environment, model, constants, calculation, settings)
 
     % Launch & Satellite data
     handles.tabbutton(launch_tab) = uicontrol(...
-        'parent'  , MainWin,...
+        'parent'  , main_window,...
         'style'   , 'togglebutton',...
         'units'   , 'normalized',...
         'fontweight', 'bold',...
@@ -141,7 +149,7 @@ function build_main_window(environment, model, constants, calculation, settings)
 
     % Sequence
     handles.tabbutton(sequence_tab) = uicontrol(...
-        'parent'  , MainWin,...
+        'parent'  , main_window,...
         'style'   , 'togglebutton',...
         'units'   , 'normalized',...
         'string'  , 'Sequence',...
@@ -151,7 +159,7 @@ function build_main_window(environment, model, constants, calculation, settings)
 
     % Arrival Data & post-processing
     handles.tabbutton(arrival_tab) = uicontrol(...
-        'parent'  , MainWin,...
+        'parent'  , main_window,...
         'style'   , 'togglebutton',...
         'units'   , 'normalized',...
         'string'  , '<html>Arrival Data &<br> post-processing</html>',...
@@ -161,7 +169,7 @@ function build_main_window(environment, model, constants, calculation, settings)
 
     % Algorithms
     handles.tabbutton(algorithms_tab) = uicontrol(...
-        'parent'  , MainWin,...
+        'parent'  , main_window,...
         'style'   , 'togglebutton',...
         'units'   , 'normalized',...
         'string'  , 'Algorithms',...
@@ -171,7 +179,7 @@ function build_main_window(environment, model, constants, calculation, settings)
 
     % Output
     handles.tabbutton(output_tab) = uicontrol(...
-        'parent'  , MainWin,...
+        'parent'  , main_window,...
         'style'   , 'togglebutton',...
         'units'   , 'normalized',...
         'string'  , 'Output',...
@@ -2586,17 +2594,17 @@ function build_main_window(environment, model, constants, calculation, settings)
     %% Finish main window
 
     % set window title
-    set(MainWin, 'Name' , [environment.program_name,...
+    set(main_window, 'Name' , [environment.program_name,...
         ' - Accurate Optimization of Multiple Gravity-Assist Missions']);
 
     % put all data in main window's application data field
-    setappdata(MainWin, 'calculation' , calculation);
-    setappdata(MainWin, 'settings'    , settings   );
-    setappdata(MainWin, 'environment' , environment);
-    setappdata(MainWin, 'constants'   , constants  );
-    setappdata(MainWin, 'model'       , model      );
-    setappdata(MainWin, 'handles'     , handles    );
-    setappdata(MainWin, 'GUI_built_OK', true       );
+    setappdata(main_window, 'calculation' , calculation);
+    setappdata(main_window, 'settings'    , settings   );
+    setappdata(main_window, 'environment' , environment);
+    setappdata(main_window, 'constants'   , constants  );
+    setappdata(main_window, 'model'       , model      );
+    setappdata(main_window, 'handles'     , handles    );
+    setappdata(main_window, 'GUI_built_OK', true       );
 
     % Set initial tabs
     current_tab = launch_tab;   current_output_tab = trajectory_tab;
@@ -2619,8 +2627,12 @@ function build_main_window(environment, model, constants, calculation, settings)
               handles.tab(sequence_tab).MaxTotalDeltaV);
 
     % move the gui to the center of the figure and make window visible
-    movegui(MainWin, 'center');
-    set(MainWin, 'Visible', 'on');
+    movegui(main_window, 'center');
+    set(main_window, 'Visible', 'on');
+    
+    %% Assign class variables
+    
+    obj.handles.main_window = main_window;
 
 end
 
@@ -2631,9 +2643,9 @@ function close_main_window(varargin) %#ok<VANUS>
 
     %% confirmation and save
 
-    global MainWin
+    global main_window
 
-    if ~getappdata(MainWin, 'GUI_built_OK')
+    if ~getappdata(main_window, 'GUI_built_OK')
         kill_app();
         warning([mfilename ':GUI_not_constructed'],...
                 'SkippingStone GUI not constructed correctly; killing app.');
@@ -2641,8 +2653,8 @@ function close_main_window(varargin) %#ok<VANUS>
     end
 
     % get relevant data
-    environment = getappdata(MainWin, 'environment');
-    dirty       = get(MainWin, 'UserData');
+    environment = getappdata(main_window, 'environment');
+    dirty       = get(main_window, 'UserData');
 
     % ask to save or not
     if strcmpi(dirty, 'dirty')
@@ -2684,7 +2696,7 @@ function close_main_window(varargin) %#ok<VANUS>
     function kill_app()
 
         % kill window
-        delete(MainWin);
+        delete(main_window);
 
         % clear all and everything from the workspace
         clear all

@@ -419,11 +419,12 @@ function varargout = callbacks(funfcn,...
             switch lower(type)
 
                 case {'tab' 'csv'}
+                    
                     % set delimiter
-                    if strcmp(type, 'tab'), delim = '\t';  %#ok<NASGU>
-                    else delim = ',';                      %#ok<NASGU>
-                    end
-
+                    delim = ','; %#ok<NASGU>
+                    if strcmp(type, 'tab')
+                        delim = '\t';  end %#ok<NASGU>
+                    
                     % try to DLMwrite "calculation"
                     try
                         % TODO: dlmwrite() can't write structures...
@@ -434,7 +435,7 @@ function varargout = callbacks(funfcn,...
                         %dlmwrite([results_path,results_file], calculation, ...
                         %    'delimiter', delim);
 
-                    catch ME
+                    catch ME,ME; %#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
                         % NOTHING YET..
                         not_yet_done();
                     end
@@ -455,8 +456,9 @@ function varargout = callbacks(funfcn,...
     function import_results(type, varargin) %#ok<VANUS,DEFNU>
 
         [results_file, ...
-         results_path] = uigetfile({['*.' type]}, ...
-                                   ['Import ' environment.program_name, ' calculation results']);
+         results_path] = uigetfile({['*.' type]}, [...
+                                   'Import ' environment.program_name,...
+                                   ' calculation results']);
 
         % if cancel was not pressed
         if ischar(results_file)
@@ -510,18 +512,20 @@ function varargout = callbacks(funfcn,...
     end
 
     %% Callbacks from launch panel
-    % ==========================================================================
+    % =====================================================================
 
     % enable/disable SEP/NEP options
     function change_power_supply(varargin) %#ok<DEFNU>
 
         % enable/disable appropriate controls
         switch varargin{2}.NewValue
+            
             case lt.power_radio(1)
-                % disable NEP-options
-                set(lt.NEP, 'enable', 'off');
-                % enable SEP-options
+                
+                % disable NEP-options/enable SEP-options
+                set(lt.NEP, 'enable', 'off');                
                 set(lt.SEP, 'enable', 'on');
+                
                 % disable or enable the jettison-mass box
                 enable_jettison();
 
@@ -584,7 +588,8 @@ function varargout = callbacks(funfcn,...
                 % change the different Isp
                 captureIsp();
 
-            case lt.propulsion(2) % Low-thrust: Ion
+            % Low-thrust: Ion
+            case lt.propulsion(2)
 
                 have_ionengine = true;
 
@@ -629,7 +634,7 @@ function varargout = callbacks(funfcn,...
 
 
     %% Callbacks from sequence panel
-    % ==========================================================================
+    % =====================================================================
 
     % Check & change dates for the launch window
     function check_dates(varargin) %#ok<DEFNU>

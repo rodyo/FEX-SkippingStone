@@ -1,8 +1,9 @@
 %% Callback function for the optimize! button
 
-function optimize_button(varargin) %#ok<VANUS>
+function optimize_button(~,~) 
 
     %% Initialize
+    % =====================================================================
 
     % get globals
     global MainWin sequence_tab output_tab algorithms_tab
@@ -14,6 +15,7 @@ function optimize_button(varargin) %#ok<VANUS>
     environment = getappdata(MainWin, 'environment');
 
     %% Perform basic checks
+    % =====================================================================
 
     % wetmass lower than drymass
     if (settings.launch.launch_mass < settings.launch.payload_mass)
@@ -90,6 +92,7 @@ function optimize_button(varargin) %#ok<VANUS>
     end
 
     %% Start optimization
+    % =====================================================================
 
     % disable all controls in the Main window
     % (cancel button is enabled AFTER the models have loaded)
@@ -153,7 +156,7 @@ function optimize_button(varargin) %#ok<VANUS>
         end
 
     % optimization might fail for some un-debugged reason
-    catch ME  %#ok<MUCTH>
+    catch ME,ME;%#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
         
         % no success
         successful = false;
@@ -177,6 +180,7 @@ function optimize_button(varargin) %#ok<VANUS>
     callbacks('reset_all', objects, states);
 
     %% Process results
+    % =====================================================================
 
     % check if optimization was cancelled
     if cancel_button_pressed()
@@ -229,6 +233,7 @@ end % optimize button
 function varargout = MGA(batch_or_normal)
 
     %% Initialize
+    % =====================================================================
 
     % get handle to MainWin
     global MainWin
@@ -254,6 +259,7 @@ function varargout = MGA(batch_or_normal)
     seq = [settings.departure.body+1; seq; settings.target.body+1];
 
     %% Load correct model and initialize ephemerides
+    % =====================================================================
 
     % Solar system model
     if settings.model(1)
@@ -311,6 +317,7 @@ function varargout = MGA(batch_or_normal)
     setappdata(MainWin, 'model', model);
 
     %% Parse current settings
+    % =====================================================================
 
     % set standard options for the patched conics procedure
 
@@ -361,7 +368,9 @@ function varargout = MGA(batch_or_normal)
 
     % modify PC_PARAMS according to intended type of optimization
     if isempty(calculation.results.first_order.best.solution)
+        
         %% First-order (Global optimization)
+        % -----------------------------------------------------------------
 
         % determine if high or low thrust has been selected
         high_thrust = settings.propulsion.selected(1);
@@ -399,6 +408,7 @@ function varargout = MGA(batch_or_normal)
     % Second-order (Local optimization)
     else
         %% Second-order (Local optimization)
+        % -----------------------------------------------------------------
 
         % determine if high or low thrust has been selected
         high_thrust = settings.propulsion.selected(1);
@@ -441,10 +451,12 @@ function varargout = MGA(batch_or_normal)
     end
 
     %% First-order optimization
+    % =====================================================================
 
     if first_order
 
         %% optimization & post-processing
+        % -----------------------------------------------------------------
 
         % initialize
         progress_bar(0, 'Optimizing...')                 % update progress bar
@@ -462,15 +474,25 @@ function varargout = MGA(batch_or_normal)
 
         % call single-objective optimizer
         if single_objective
-            [solution, fval, exitflag, output, LB,UB] = ...
-                optimizer(objective_function, pc_params, seq);
+            
+            [solution, fval,...
+             exitflag, output, ...
+             LB      , UB] = optimizer(objective_function,...
+                                       pc_params,...
+                                       seq);
+                                   
             % assign dummies for the Pareto fronts
             Paretos = [];
 
         % call multi-objective optimizer
         elseif multi_objective
-            [solution, fval, Paretos, Paretos_fvals, exitflag, output, LB,UB] =...
-                optimizer(objective_function, pc_params, seq);
+            
+            [solution, fval, ...
+             Paretos , Paretos_fvals,...
+             exitflag, output,...
+             LB      , UB] = optimizer(objective_function,...
+                                       pc_params,...
+                                       seq);
         end
 
         % call post-processor
@@ -485,6 +507,7 @@ function varargout = MGA(batch_or_normal)
         end
 
         %% process results
+        % -----------------------------------------------------------------
 
         % stop the timer
         elapsed_time = toc(start_time);
@@ -638,10 +661,12 @@ function varargout = MGA(batch_or_normal)
     end % first order
 
     %% Second-order optimization
+    % =====================================================================
 
     if second_order
 
          %% optimization & post-processing
+         % -----------------------------------------------------------------
 
          % initialize
         progress_bar(0, 'Optimizing...')                 % update progress bar
@@ -650,16 +675,22 @@ function varargout = MGA(batch_or_normal)
         objectives.which = [1 0 0];                      % use only maximum mass objective
 
         % redefine objective function
-        objective_function = @(X, params) PC_objective_function(...
-            objectives, patched_conics(seq, X, params));
-
+        objective_function = @(X, params) PC_objective_function(objectives,...
+                                                                patched_conics(seq,...
+                                                                               X,...
+                                                                               params));
         % call optimizer
-        [solution, fval, exitflag, output] = ...
-            optimizer(objective_function, pc_params, seq);
+        [solution,...
+         fval,...
+         exitflag,...
+         output] = optimizer(objective_function,...
+                             pc_params,...
+                             seq);
 
         % call post-processor
         postprocessor_data = [];
         if settings.postprocessing.check && ~cancel_button_pressed() % only when requested
+            
             progress_bar(0, 'Starting post-processor...');
             % TODO: continue here
             [postprocessor_data, ...
@@ -671,6 +702,7 @@ function varargout = MGA(batch_or_normal)
         end
 
         %% process output
+        % -----------------------------------------------------------------
 
         % stop the timer
         elapsed_time = toc(start_time);
@@ -808,6 +840,7 @@ function varargout = PC_objective_function(objectives, result, stats)
 
 
     %% minimum Delta_V / maximum drymass
+    % =====================================================================
 
     if objectives.which(1)
         % cost is the negative endmass
@@ -832,6 +865,7 @@ function varargout = PC_objective_function(objectives, result, stats)
     end
 
     %% minimum TOF
+    % =====================================================================
 
     if objectives.which(2)
         % total travel time
@@ -845,6 +879,7 @@ function varargout = PC_objective_function(objectives, result, stats)
     end
 
     %% custom
+    % =====================================================================
 
     if objectives.which(3)
         % calculate the cost & constraints user-defined function
@@ -896,8 +931,11 @@ function statevec = ephemerides_generation(body, time, model, environment, setti
             if HAVE_DE405_MEX
 
                 % JPL has different body order; convert
-                if body==1, JPL_body = 11;
-                else JPL_body = body-1; end
+                if body==1
+                    JPL_body = 11;
+                else
+                    JPL_body = body-1; 
+                end
 
                 % JPL expects JD instead of days past J2000
                 time_corrected = time + 2451544.5;
@@ -912,8 +950,11 @@ function statevec = ephemerides_generation(body, time, model, environment, setti
             if HAVE_DE421_MEX
 
                 % JPL has different body order; convert
-                if body==1, JPL_body = 11;
-                else JPL_body = body-1; end
+                if body==1
+                    JPL_body = 11;
+                else
+                    JPL_body = body-1; 
+                end
 
                 % JPL expects JD instead of days past J2000
                 time_corrected = time + 2451544.5;
@@ -945,6 +986,7 @@ end % ephemerides generation
 function varargout = optimizer(obj, obj_params, seq)
 
     %% Initialize
+    % =====================================================================
 
     % get MainWin handle
     global MainWin
@@ -969,9 +1011,12 @@ function varargout = optimizer(obj, obj_params, seq)
     multi_objective  = ~single_objective;
 
     %% Global optimization
+    % =====================================================================
+    
     if first_order
 
         %% set bounds
+        % -----------------------------------------------------------------
 
         % =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         % FORMAT (Without DSMs):
@@ -1039,6 +1084,7 @@ function varargout = optimizer(obj, obj_params, seq)
         end
 
         %% optimize globally
+        % -----------------------------------------------------------------
 
         % adjust scope
         obj_params.scope = 'global';
@@ -1140,6 +1186,7 @@ function varargout = optimizer(obj, obj_params, seq)
         end
 
         %% optimize locally (after convergence of the global routine)
+        % -----------------------------------------------------------------
 
         % only run local optimizer for single-objective optimizations,
         % and when the cancel button's not been pressed
@@ -1165,19 +1212,24 @@ function varargout = optimizer(obj, obj_params, seq)
 
                 % FMINCON
                 if settings.optimize.local.optimizer(1)
+                    
                     % active-set gives NaN/inf quite often
                     try
                         [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                             solution,[],[],[],[],LB,UB,@constraints_wrapper,options);
+                        
                     % in those cases, use interior-point
-                    catch%#ok
+                    catch ME,ME; %#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
+                        
                         try % this one too might fail; BARRIER() complains about inf-constraint values
                             options = optimset(options,...
                                 'FunValCheck', 'off',...
                                 'algorithm'  , 'interior-point');
                             [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                                 solution,[],[],[],[],LB,UB,@constraints_wrapper,options);
-                        catch%#ok...so use MINIMIZE(); FMINCON() has utterly failed us
+                            
+                        catch ME,ME; %#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
+                            %...so use MINIMIZE(); FMINCON() has utterly failed us
                             options.ConstraintsInObjectiveFunction = 2;
                             options.Algorithm = 'fminsearch';
                             [solution, funval] = minimize(@(X)obj(X, obj_params),...
@@ -1213,11 +1265,13 @@ function varargout = optimizer(obj, obj_params, seq)
     end % if first order
 
     %% High-accuracy local optimization
+    % =====================================================================
 
     if second_order
 % TODO : not at all well tested ...
 
         %% initialize
+        % -----------------------------------------------------------------
 
         % copy ORIGINAL settings
         settings = calculation.results.first_order.settings;
@@ -1233,6 +1287,7 @@ maxFunEvals = 1e4;
 
 
         %% define second-order initial estimate and new bounds
+        % -----------------------------------------------------------------
 
         % best result from first-order optimziation
         best_result = calculation.results.first_order.best.solution;
@@ -1273,6 +1328,7 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
         LB((0:length(tofUB)-1)+2) = tofLB;    UB((0:length(tofUB)-1)+2) = tofUB; % times of flight
 
         %% second-order optimization
+        % -----------------------------------------------------------------
 
         % adjust progress bar
         progress_bar(0, 'Running local optimizer...')
@@ -1291,26 +1347,32 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
             try
                 [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                     initial_estimate,[],[],[],[],LB,UB,@constraints_wrapper,options);
-                % in those cases, use interior-point
-            catch%#ok
+                
+            % in those cases, use interior-point
+            catch ME,ME; %#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
+                
                 try % this one too might fail; BARRIER() complains about inf-constraint values
                     options = optimset(options,...
                         'FunValCheck', 'off',...
                         'algorithm'  , 'interior-point');
                     [solution, funval] = fmincon(@(X)obj(X, obj_params), ...
                         initial_estimate,[],[],[],[],LB,UB,@constraints_wrapper,options);
-                catch%#ok...so use MINIMIZE(); FMINCON() has utterly failed us
+                    
+                catch ME,ME; %#ok<VUNUS> NOTE: workaround for bug in mlint/R2010a
+                    %...so use MINIMIZE(); FMINCON() has utterly failed us
                     options.ConstraintsInObjectiveFunction = 2;
                     options.Algorithm = 'fminsearch';
                     [solution, funval] = minimize(@(X)obj(X, obj_params),...
                         initial_estimate, [],[], [],[], LB,UB, [], options);
                 end
             end
+            
         % Constrained Nelder-Mead
         elseif settings.optimize.local.optimizer(2)
             options.Algorithm = 'fminsearch';
             [solution, funval] = minimize(@(X)obj(X, obj_params),...
                 initial_estimate, [],[], [],[], LB,UB, [], options);
+            
         % Constrained quasi-Newton (L)BFGS
         elseif settings.optimize.local.optimizer(3)
             options.Algorithm = 'fminlbfgs';
@@ -1327,6 +1389,7 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
     end % if first/second order
 
     %% Helper functions
+    % =====================================================================
 
     % small wrapper function to get the nonlinear constraint values into
     % the FMINCON() optimization routine
@@ -1382,6 +1445,7 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
                 if (strcmpi(obj_params.scope, 'local') && rand < 1/5) ||...
                    (strcmpi(obj_params.scope, 'global') && ...
                    ~strcmpi(state, 'interrupt') && isfield(optimValues, 'procedure'))
+               
                     % get display values
                     endmass = abs(optimValues.fval);
                     if isfield(optimValues, 'constrviolation')
@@ -1395,6 +1459,7 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
                     else
                         violation = 0;
                     end
+                    
                     % update progress
                     if strcmpi(obj_params.scope, 'local')
                         progress = 0.9 + 0.1*optimValues.funcCount/maxFunEvals;
@@ -1404,21 +1469,23 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
                             endmass/settings.launch.launch_mass *0.9]);
                     end
                     show_progress = true;
+                    
                     % stop immediately if mass equals given launch mass and
                     % constraint violation is zero
-                    if abs(endmass - settings.launch.launch_mass) < 1e-1 &&...
-                       violation == 0;
-                        stop = true;
-                    end
+                    stop = abs(endmass - settings.launch.launch_mass) < 1e-1 &&...
+                           violation == 0;                    
                 end
 
                 % GODLIKE; single-objective optimizations
                 if isfield(optimValues, 'type') && ...
                    strcmpi(optimValues.type, 'single-objective')
+               
                     show_progress = true;
+                    
                     % modify the display string
                     violation = optimValues.best_fval_constraint_violation;
                     endmass   = abs(optimValues.best_fval);
+                    
                     % update progress
                     if (violation == 0)
                         progress = max([optimValues.funcCount/maxFunEvals *0.9
@@ -1435,12 +1502,11 @@ initial_estimate = [initial_estimate; best_result.DeltaVs(1); V_init(:)];
                     else
                         progress = 0.90;
                     end
+                    
                     % stop immediately if mass equals given launch mass and
                     % constraint violation is zero
-                    if abs(endmass - settings.launch.launch_mass) < 1e-1 &&...
-                       violation == 0;
-                        stop = true;
-                    end
+                    stop = abs(endmass - settings.launch.launch_mass) < 1e-1 &&...
+                           violation == 0;
                 end
 
                 % update progress and progress bar
