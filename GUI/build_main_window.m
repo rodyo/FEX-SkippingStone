@@ -2117,7 +2117,7 @@ function build_main_window(environment, model, constants, calculation, settings)
                 'String'  , 'FMINCON (SQP)',...
                 'Style'   , 'radiobutton');
                 if ~environment.optim_toolbox_available
-                    set(local_optimizer(1), 'enable', 'off'); end
+                    set(handles.tab(algorithms_tab).local_optimizer(1), 'enable', 'off'); end
 
             % constrained Nelder-Mead
             handles.tab(algorithms_tab).local_optimizer(2) = uicontrol(...
