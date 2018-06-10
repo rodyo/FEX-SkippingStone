@@ -2,10 +2,6 @@ function progress_bar(progress, string)
 % Author:
 % Name       : Rody P.S. Oldenhuis
 % E-mail     : oldenhuis@gmail.com
-%              oldenhuis@luxspace.lu
-% Affiliation: LuxSpace sarl
-%              Delft University of Technology
-%              Partly performed at ISAS/JAXA
 
 % If you find this work useful, please consider a donation:
 % https://www.paypal.me/RodyO/3.5
@@ -72,13 +68,13 @@ function progress_bar(progress, string)
     patch(xpatch, ypatch, bgcolor,...
          'EdgeColor', bgcolor);
     line(xline, yline, 'color', 'k');
-    
-    % set the text    
+
+    % set the text
     T = text(0.5, 0.5, string, ...
-        'FontSize', 9, ...        
+        'FontSize', 9, ...
         'color'   , 'k', ...
         'HorizontalAlignment', 'center');
-    
+
     % TODO: (Rody Oldenhuis) how to accomplish this beyond R2014b?
     if verLessThan('MATLAB', '8.4')
         set(T, 'EraseMode', 'xor'); end

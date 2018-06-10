@@ -13,13 +13,13 @@
 % constrictive set of rules that the code should obey before JIT-compilation
 % can actually be applied. Also, at the current stage of development, JIT
 % is not very intelligent, and will in many cases incur substantial a
-% overhead, reducing the performance gain significantly. 
+% overhead, reducing the performance gain significantly.
 %
 % To prevent this sort of behavior and make Skipping Stone run much faster,
 % several computationally costly routines have been translated into
-% compiled MATLAB-functions, called MATLAB Executables (MEX). This function 
-% will compile all the CPU-intensive and JIT-incompatible routines into a 
-% binary executable, suited for your platform. 
+% compiled MATLAB-functions, called MATLAB Executables (MEX). This function
+% will compile all the CPU-intensive and JIT-incompatible routines into a
+% binary executable, suited for your platform.
 %
 % Here's a list of all the computationally intesive functions that will be
 % compiled by running this function:
@@ -36,19 +36,17 @@ function speedup
 
     % Please report bugs and inquiries to:
     %
-    % Name       : Rody P.S. Oldenhuis
-    % E-mail     : oldenhuis@gmail.com    (personal)
-    %              oldenhuis@luxspace.lu  (professional)
-    % Affiliation: LuxSpace sarl
-    % Licence    : BSD
+    % Name   : Rody P.S. Oldenhuis
+    % E-mail : oldenhuis@gmail.com
+    % Licence: 2-clause BSD (See License.txt)
 
     % If you find this work useful, please consider a donation:
     % https://www.paypal.me/RodyO/3.5
-    
+
     % If you would like to cite this work, please use the following template:
     %
     % Rody Oldenhuis, orcid.org/0000-0002-3162-3660. "Skipping Stone" version
-    % <version>, <date you last used it>. MATLAB interplanetary space mission 
+    % <version>, <date you last used it>. MATLAB interplanetary space mission
     % design tool.
     % https://nl.mathworks.com/matlabcentral/fileexchange/29272-skipping-stone
 
@@ -57,7 +55,7 @@ function speedup
 
     % codegen was called 'emlmex' before R20103a:
     use_emlmex = verLessThan('MATLAB', '8.1');
-        
+
     % Collector for all warning/error messages; will be reported via
     % warndlg() at the end
     msg = {};
@@ -109,7 +107,7 @@ function speedup
         'orbital_mechanics',filesep,...
         'Lambert targeters',filesep,...
         'high_thrust']);
-    
+
     fprintf(1, 'Compiling LAMBERT.M...\n');
     example_input = {...
         [0.0, 0.0, 0.0], ...% r1vec
@@ -124,7 +122,7 @@ function speedup
         else
             codegen -config:mex -args example_input -o lambert lambert.m
         end
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING LAMBERT.M FAILED: ',...
                       ME.message];
     end
@@ -136,7 +134,7 @@ function speedup
                 'Lambert targeters',...
                 'low thrust'));
     fprintf(1, ...
-            'Compiling LAMBERT_LOW_EXPOSINS.M...\n');        
+            'Compiling LAMBERT_LOW_EXPOSINS.M...\n');
     example_input = {...
         [0.0, 0.0, 0.0],...  % r1vec
         [0.0, 0.0, 0.0],...  % r2vec
@@ -146,7 +144,7 @@ function speedup
         0.0, ...             % M0
         0.0, ...             % Isp
         0.0};%#ok            % muC
-    
+
     % compile
     try
         if use_emlmex
@@ -154,7 +152,7 @@ function speedup
         else
             codegen -config:mex -args example_input -o lambert_low_exposins lambert_low_exposins.m
         end
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING LAMBERT_LOW_EXPOSINS.M FAILED: ',...
                       ME.message];
     end
@@ -173,7 +171,7 @@ function speedup
         0.0,...   % second radius
         false,... % compute gradients?
         0.0};%#ok % muC
-    
+
     % compile
     try
         if use_emlmex
@@ -181,28 +179,28 @@ function speedup
         else
             codegen -config:mex -args example_input -o TOF TOF.m
         end
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING TOF.M FAILED: ',...
                       ME.message];
     end
-    
-    % compile MEX files for JPL development ephemerides 
+
+    % compile MEX files for JPL development ephemerides
     % computations
     cd(fullfile(rootdir,...
                 'ephemerides',...
                 'JPL_DE'));
     fprintf(1, ...
             'Compiling Ephemerides_MEX.c...\n');
-        
+
     % compile
     try
         mex Ephemerides_MEX.c jpleph.c JPLEPH19402100Bin.c Ephemerides_wrapper.c -outdir .. -output JPL_DE405_ephemerides
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING Ephemerides_MEX.c FAILED: ',...
                       ME.message];
     end
-    
-    
+
+
 
     %% COMPILE CONVERSION ROUTINES
 
@@ -215,7 +213,7 @@ function speedup
     % compile
     try
         mex eM2E.c
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING eM2E.C FAILED: ',...
                       ME.message];
     end
@@ -231,7 +229,7 @@ function speedup
     % compile
     try
         mex paretofront.c
-    catch ME,ME; %#ok<VUNUS> 
+    catch ME,ME; %#ok<VUNUS>
         msg{end+1} = ['COMPILING PARETOFRONT.C FAILED: ',...
                       ME.message];
     end
