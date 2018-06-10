@@ -27,7 +27,7 @@
 %   lambert.m               : lambert targeter for ballistic flights
 %   lambert_low_exposins.m  : lambert targeter for Exponential Sinusoids
 %   TOF.m                   : time-of-flight equation for central body flyby's
-%   progress_orbit.c        : Kepler state transition matrix
+%   propagate_orbit.c       : Kepler state transition matrix
 %   JPL_DE405_ephemerides.c : JPL planetary ephemerides calculator
 %   eM2E.c                  : solve Kepler's equation
 %   paretofront.c           : logical Paretofront membership test
@@ -70,7 +70,7 @@ function speedup
                      '  lambert.m               : lambert targeter for ballistic flights\n',...
                      '  lambert_low_exposins.m  : lambert targeter for Exponential Sinusoids\n',...
                      '  TOF.m                   : time-of-flight equation for central body flyby''s\n',...
-                     '  progress_orbit.c        : Kepler state transition matrix\n',...
+                     '  propagate_orbit.c       : Kepler state transition matrix\n',...
                      '  JPL_DE405_ephemerides.c : NASA/JPL planetary ephemerides calculator\n',...
                      '  eM2E.c                  : solve Kepler''s equation\n',...
                      '  paretofront.c           : logical Paretofront membership test\n\n',...
@@ -94,12 +94,12 @@ function speedup
     %% COMPILE ORBITAL MECHANICS ROUTINES
 
     % Compile Kepler State Transition Matrix routine
-    cd(fullfile(rootdir,'orbital_mechanics','progress_orbit'));
-    fprintf(1, 'Compiling PROGRESS_ORBIT.C...\n');
+    cd(fullfile(rootdir,'orbital_mechanics','propagate_orbit'));
+    fprintf(1, 'Compiling PROPAGATE_ORBIT.C...\n');
     try
-        mex progress_orbit.c
+        mex propagate_orbit.c
     catch ME,ME; %#ok<VUNUS> (suppresses incorrectly generated warning (#ok<MUCTH>); bug in R2010a)
-        msg{end+1} = ['COMPILING PROGRESS_ORBIT.C FAILED: ',...
+        msg{end+1} = ['COMPILING PROPAGATE_ORBIT.C FAILED: ',...
                       ME.message];
     end
 

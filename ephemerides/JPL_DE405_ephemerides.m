@@ -24,7 +24,7 @@ function statevec = JPL_DE405_ephemerides(times, ppobjects)
 
     % JPL/DE405 ephemerides beyond 2099 are not available for
     % some bodies. In those (rare) cases, generate the ephemerides
-    % with PROGRESS_ORBIT()
+    % with PROPAGATE_ORBIT()
     if times > breaks(end)
         % first get the last ephemerides in the dataset
         last_statevec = JPL_DE405_ephemerides(breaks(end), ppobjects(:));
@@ -37,7 +37,7 @@ function statevec = JPL_DE405_ephemerides(times, ppobjects)
     end
 
     % JPL/DE405 ephemerides before 1/Jan/2000 are not available. Use
-    % PROGRESS_ORBIT() for those cases too
+    % PROPAGATE_ORBIT() for those cases too
     if times < 0
         % first get the first ephemerides in the dataset
         first_statevec = JPL_DE405_ephemerides(0, ppobjects(:));

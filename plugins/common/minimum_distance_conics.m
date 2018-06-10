@@ -713,7 +713,7 @@ end % min/max distances
 % computes the instantaneous distance, its time derivative and the 
 % instantaneous relative speed
 function [R, distance, speed] = Rrrel(t, t0,x0p,x0s,muC) 
-    % compute new states with progress_orbit()
+    % compute new states with propagate_orbit()
     statep = progressOrbit(t(:)-t0,x0p, muC, 'seconds');
     states = progressOrbit(t(:)-t0,x0s, muC, 'seconds');
     % rename
