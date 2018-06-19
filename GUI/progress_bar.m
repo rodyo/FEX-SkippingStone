@@ -20,7 +20,7 @@ function progress_bar(progress, string)
 
         % add percentage to the string
         progress = max(0, min(1, progress));
-        string   = [string, ' (', num2str(round(progress*100)), '%)'];
+        string   = [string, ' (', num2str(round(progress*100)), '\%)'];
 
         % define the color for the progress polygon
         bgcolor = BGCOLOR + 0.1;
